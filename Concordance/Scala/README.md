@@ -18,3 +18,7 @@ To run from Scala folder:
 ```
 >scala target/concordance.jar
 ```
+
+Important! This implementation is **not** memory efficient and the standard 256MB of heap size  will not suffice.
+A heap size of 1 - 1.5 GB will be necessary for the standart sequence limit.
+More details on [Stackoverflow](http://stackoverflow.com/questions/1441373/increase-jvm-heap-size-for-scala)
