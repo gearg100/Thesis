@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Orbit", "Orbit.fsproj", "{7B98C6D5-D9A2-407F-AD62-8887738BF0B5}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "OrbitUnitTests", "OrbitUnitTests.fsproj", "{1F3EDE6E-7D84-45BD-9B0C-00198760A714}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7B98C6D5-D9A2-407F-AD62-8887738BF0B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B98C6D5-D9A2-407F-AD62-8887738BF0B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B98C6D5-D9A2-407F-AD62-8887738BF0B5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7B98C6D5-D9A2-407F-AD62-8887738BF0B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B98C6D5-D9A2-407F-AD62-8887738BF0B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B98C6D5-D9A2-407F-AD62-8887738BF0B5}.Release|x64.ActiveCfg = Release|Any CPU
+		{1F3EDE6E-7D84-45BD-9B0C-00198760A714}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F3EDE6E-7D84-45BD-9B0C-00198760A714}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F3EDE6E-7D84-45BD-9B0C-00198760A714}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1F3EDE6E-7D84-45BD-9B0C-00198760A714}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F3EDE6E-7D84-45BD-9B0C-00198760A714}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F3EDE6E-7D84-45BD-9B0C-00198760A714}.Release|x64.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
