@@ -38,7 +38,7 @@ module Program =
     let inp = 1000871L
 
     let runAA M N G = 
-        use flag = new CountdownEvent(1)
+        let flag = new CountdownEvent(1)
         let funcs = funcs inp
         let result = ref None
         let timer = Stopwatch.StartNew()
@@ -51,10 +51,11 @@ module Program =
         (aggregator:>IDependent<_>).Start()
         (aggregator:>IAggregator<_>).Store (integers)
         flag.Wait()
+        flag.Dispose()
         result.Value.Value
 
     let runTT M N G = 
-        use flag = new CountdownEvent(1)
+        let flag = new CountdownEvent(1)
         let funcs = funcs inp
         let result = ref None
         let timer = Stopwatch.StartNew()
@@ -67,6 +68,7 @@ module Program =
         (aggregator:>IDependent<_>).Start()
         (aggregator:>IAggregator<_>).Store (integers)
         flag.Wait()
+        flag.Dispose()
         result.Value.Value
 
     let runTA M N G = 
