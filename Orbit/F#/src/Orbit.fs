@@ -30,12 +30,12 @@ open FibonaccisLong
 #endif
 
 module Program =
-    type MapperA = Orbit.Task.Mapper.Mapper<TElem,TElem>
-    type AggregatorA = Orbit.Task.Aggregator.Aggregator<TElem>
+    type MapperA = Orbit.Agent.Mapper.Mapper<TElem,TElem>
+    type AggregatorA = Orbit.Agent.Aggregator.Aggregator<TElem>
     type MapperT = Orbit.Task.Mapper.Mapper<TElem,TElem>
     type AggregatorT = Orbit.Task.Aggregator.Aggregator<TElem>
 
-    let inp = 1000871L
+    let inp = 1000871I
 
     let runAA M N G = 
         use flag = new CountdownEvent(1)
@@ -70,7 +70,7 @@ module Program =
         result.Value.Value
 
     let runTA M N G = 
-        use flag = new CountdownEvent(1)
+        let flag = new CountdownEvent(1)
         let funcs = funcs inp
         let result = ref None
         let timer = Stopwatch.StartNew()
@@ -83,6 +83,7 @@ module Program =
         (aggregator:>IDependent<_>).Start()
         (aggregator:>IAggregator<_>).Store (integers)
         flag.Wait()
+        flag.Dispose()
         result.Value.Value
     
     [<EntryPoint>]
