@@ -1,4 +1,4 @@
-﻿namespace Orbit.Tasks
+﻿namespace Orbit.Task
     
 module Aggregator = 
     open Orbit.Types

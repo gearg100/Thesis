@@ -22,18 +22,60 @@ module TestData =
         |> Async.Start
 
 open Orbit.Benchmarks
+
+#if BigInt
+open FibonaccisBigInt
+#else
 open FibonaccisLong
+#endif
 
 module Program =
-    type Mapper = Orbit.Tasks.Mapper.Mapper<TElem,TElem>
-    type Aggregator = Orbit.Agent.Aggregator.Aggregator<TElem>
-    let run M N G = 
+    type MapperA = Orbit.Task.Mapper.Mapper<TElem,TElem>
+    type AggregatorA = Orbit.Task.Aggregator.Aggregator<TElem>
+    type MapperT = Orbit.Task.Mapper.Mapper<TElem,TElem>
+    type AggregatorT = Orbit.Task.Aggregator.Aggregator<TElem>
+
+    let inp = 1000871L
+
+    let runAA M N G = 
         use flag = new CountdownEvent(1)
-        let funcs = funcs 1000871L
+        let funcs = funcs inp
         let result = ref None
         let timer = Stopwatch.StartNew()
-        use mapper = new Mapper(M, G, mapF funcs, onComplete flag timer result)
-        let aggregator = new Aggregator(N)
+        use mapper = new MapperA(M, G, mapF funcs, onComplete flag timer result)
+        use aggregator = new AggregatorA(N)
+        (mapper:>IDependent<_>).Config aggregator
+        (aggregator:>IDependent<_>).Config mapper
+
+        (mapper:>IDependent<_>).Start()
+        (aggregator:>IDependent<_>).Start()
+        (aggregator:>IAggregator<_>).Store (integers)
+        flag.Wait()
+        result.Value.Value
+
+    let runTT M N G = 
+        use flag = new CountdownEvent(1)
+        let funcs = funcs inp
+        let result = ref None
+        let timer = Stopwatch.StartNew()
+        use mapper = new MapperT(M, G, mapF funcs, onComplete flag timer result)
+        use aggregator = new AggregatorT(N)
+        (mapper:>IDependent<_>).Config aggregator
+        (aggregator:>IDependent<_>).Config mapper
+
+        (mapper:>IDependent<_>).Start()
+        (aggregator:>IDependent<_>).Start()
+        (aggregator:>IAggregator<_>).Store (integers)
+        flag.Wait()
+        result.Value.Value
+
+    let runTA M N G = 
+        use flag = new CountdownEvent(1)
+        let funcs = funcs inp
+        let result = ref None
+        let timer = Stopwatch.StartNew()
+        use mapper = new MapperT(M, G, mapF funcs, onComplete flag timer result)
+        use aggregator = new AggregatorA(N)
         (mapper:>IDependent<_>).Config aggregator
         (aggregator:>IDependent<_>).Config mapper
 
@@ -45,7 +87,20 @@ module Program =
     
     [<EntryPoint>]
     let main _ =
-        let (time, result) = run 4 2 3000
+        Console.Write("Give me nOfMappers: ")
+        let M = int <| Console.ReadLine()
+        Console.Write("Give me levelOfParallelism for hashset: ")
+        let N = int <| Console.ReadLine()
+        Console.Write("Give me chunkSize: ")
+        let G = int <| Console.ReadLine()
+        Console.Write("Choose Implementation (AA, TT or TA): ")
+        let m = Console.ReadLine()
+        let (time, result) = 
+            match m.ToUpper() with 
+            |"AA" -> runAA M N G
+            |"TT" -> runTT M N G
+            |"TA" -> runTA M N G
+            |_ -> failwith "Invalid Implementation"
         printfn "Result: %d" result
         printfn "Time Elapsed: %d ms" time
         Console.WriteLine("Press <Enter> to exit")

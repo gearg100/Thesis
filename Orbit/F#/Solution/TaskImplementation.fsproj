@@ -48,8 +48,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Mapper.fs" />
-    <Compile Include="Aggregator.fs" />
+    <Compile Include="../src/TaskImplementation/Mapper.fs" />
+    <Compile Include="../src/TaskImplementation/Aggregator.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
