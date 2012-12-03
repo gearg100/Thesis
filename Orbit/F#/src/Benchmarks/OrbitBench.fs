@@ -1,6 +1,7 @@
 ﻿namespace Orbit.Benchmarks
 
 module FibonaccisLong=
+    type TElem = int64
     let fib n =
         let rec fib_tr n b a =
             if n = 0L then a else fib_tr (n-1L) (a+b) b
@@ -21,6 +22,7 @@ module FibonaccisLong=
     let integers = [1L;3L;5L;6L;8L;56L;235L;543L]
 
 module FibonaccisBigInt=
+    type TElem = bigint
     let fib n =
         let rec fib_tr n b a =
             if n = 0I then a else fib_tr (n-1I) (a+b) b
@@ -41,6 +43,7 @@ module FibonaccisBigInt=
     let integers = [1I;3I;5I;6I;8I;56I;235I;543I]
 
 module SimpleInt =
+    type TElem = int
     let funcs n =
         [
             fun i -> (i + 1)%n

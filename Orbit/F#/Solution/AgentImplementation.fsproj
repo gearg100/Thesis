@@ -1,15 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>1f3ede6e-7d84-45bd-9b0c-00198760a714</ProjectGuid>
+    <ProjectGuid>7b98c6d5-d9a2-407f-ad62-8887738bf0b5</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>OrbitUnitTests</RootNamespace>
-    <AssemblyName>OrbitUnitTests</AssemblyName>
-    <targetframeworkversion>4.5</targetframeworkversion>
-    <Name>FsUnitTest</Name>
+    <RootNamespace>Orbit</RootNamespace>
+    <AssemblyName>AgentImplementation</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <Name>AgentImplementation</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -19,7 +20,9 @@
     <OutputPath>..\target\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>..\target\Debug\FsUnitTest.XML</DocumentationFile>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>..\target\Debug\Orbit.XML</DocumentationFile>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -28,10 +31,11 @@
     <OutputPath>..\target\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>..\target\Release\FsUnitTest.XML</DocumentationFile>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>..\target\Release\Orbit.XML</DocumentationFile>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
@@ -41,32 +45,18 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="../src/Benchmarks/OrbitBench.fs">
-      <Link>OrbitBench.fs</Link>
-    </Compile>
-    <Compile Include="../test/UnitTestInt64.fs">
-      <Link>UnitTestInt64.fs</Link>
-    </Compile>
     <None Include="App.config" />
-    <None Include="MSTest.runsettings" />
-    <None Include="../test/Tests.fsx">
-      <Link>Tests.fsx</Link>
-    </None>
+    <Compile Include="../src/AgentImplementation/Mapper.fs">
+      <Link>Mapper.fs</Link>
+    </Compile>
+    <Compile Include="../src/AgentImplementation/Aggregator.fs">
+      <Link>Aggregator.fs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="AgentImplementation.fsproj">
-      <Name>AgentImplementation</Name>
-      <Project>{7b98c6d5-d9a2-407f-ad62-8887738bf0b5}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="Common.fsproj">
       <Name>Common</Name>
       <Project>{a6252a03-c837-4a6f-a00f-15067ea3d6c4}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="TaskImplementation.fsproj">
-      <Name>TaskImplementation</Name>
-      <Project>{dbfe96cb-cf99-422d-83fd-486554e9604f}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

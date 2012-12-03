@@ -1,4 +1,4 @@
-﻿namespace Orbit
+﻿namespace Orbit.Agent
 
 module Mapper =
     open Orbit.Types 
@@ -27,7 +27,6 @@ module Mapper =
     )
 
     open Helpers
-    open System.Diagnostics
     open System.Threading
     open System.Threading.Tasks
     type Mapper<'TSource, 'TResult when 'TSource : equality and 'TResult: comparison>

@@ -1,4 +1,4 @@
-﻿namespace Orbit
+﻿namespace Orbit.Agent
     
 module Aggregator = 
     open Orbit.Types
@@ -37,7 +37,7 @@ module Aggregator =
             loop()
         )
     open System.Threading.Tasks
-    type Aggregator<'T when 'T:comparison>(nOfWorkers:int, func: IMapper<'T> -> seq<'T> -> unit) =
+    type Aggregator<'T when 'T:comparison>(nOfWorkers:int) =
         let dependency = ref Unchecked.defaultof<IMapper<'T>>
         let workers = Array.init nOfWorkers (fun _ -> actorBody dependency)
         interface IAggregator<'T> with

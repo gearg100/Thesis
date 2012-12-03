@@ -6,9 +6,11 @@ open System.Threading
 open System.Diagnostics
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
+open Orbit
 open Orbit.Types
-open Orbit.Mapper
-open Orbit.Aggregator
+open Orbit.Agent
+open Aggregator
+open Mapper
 open Orbit.Logic
 open Orbit.Benchmarks.FibonaccisLong
 
@@ -34,7 +36,7 @@ type ``Fibonacci Test with int64``() =
         let result = ref -1
         let timer = System.Diagnostics.Stopwatch.StartNew()
         use mapper = new Mapper<_, _>(M, G, mapF funcs, onComplete flag timer result)
-        let aggregator = new Aggregator<_>(N,aggregateF)
+        let aggregator = new Aggregator<_>(N)
         (mapper:>IDependent<_>).Config aggregator
         (aggregator:>IDependent<_>).Config mapper
 

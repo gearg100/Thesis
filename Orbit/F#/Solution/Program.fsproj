@@ -5,12 +5,12 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>7b98c6d5-d9a2-407f-ad62-8887738bf0b5</ProjectGuid>
+    <ProjectGuid>dc87a841-a3dc-4ab4-ba59-b32eb230eda9</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Orbit</RootNamespace>
-    <AssemblyName>Orbit</AssemblyName>
+    <AssemblyName>OrbitProgram</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <Name>Orbit</Name>
+    <Name>Program</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,7 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>..\target\Debug\Orbit.XML</DocumentationFile>
+    <DocumentationFile>..\target\Debug\Program.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -32,7 +32,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>..\target\Release\Orbit.XML</DocumentationFile>
+    <DocumentationFile>..\target\Release\Program.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
@@ -46,13 +46,29 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <Compile Include="../src/Helpers.fs" />
-    <Compile Include="../src/OrbitTypes.fs" />
-    <Compile Include="../src/Mapper.fs" />
-    <Compile Include="../src/Aggregator.fs" />
-    <Compile Include="../src/OrbitLogic.fs" />
-    <Compile Include="../src/OrbitBench.fs" />
-    <Compile Include="../src/Orbit.fs" />
+    <Compile Include="../src/Benchmarks/OrbitBench.fs">
+      <Link>OrbitBench.fs</Link>
+    </Compile>
+    <Compile Include="../src/Orbit.fs">
+      <Link>Orbit.fs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="AgentImplementation.fsproj">
+      <Name>AgentImplementation</Name>
+      <Project>{7b98c6d5-d9a2-407f-ad62-8887738bf0b5}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="Common.fsproj">
+      <Name>Common</Name>
+      <Project>{a6252a03-c837-4a6f-a00f-15067ea3d6c4}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="TaskImplementation.fsproj">
+      <Name>TaskImplementation</Name>
+      <Project>{dbfe96cb-cf99-422d-83fd-486554e9604f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
@@ -63,6 +79,7 @@
   <Target Name="BeforeBuild">
   </Target>
   <Target Name="AfterBuild">
+	rd "$(ProjectDir)obj" /S /Q
   </Target>
   -->
 </Project>

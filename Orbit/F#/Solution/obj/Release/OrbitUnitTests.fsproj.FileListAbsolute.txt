@@ -1,0 +1,7 @@
+C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\target\Release\OrbitUnitTests.dll.config
+C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\target\Release\FsUnitTest.XML
+C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\target\Release\OrbitUnitTests.dll
+C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\target\Release\OrbitUnitTests.pdb
+C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\Solution\obj\Release\OrbitUnitTests.fsprojResolveAssemblyReference.cache
+C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\Solution\obj\Release\OrbitUnitTests.dll
+C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\Solution\obj\Release\OrbitUnitTests.pdb
