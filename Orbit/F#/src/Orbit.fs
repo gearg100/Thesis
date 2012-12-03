@@ -98,6 +98,7 @@ module Program =
         let G = int <| Console.ReadLine()
         Console.Write("Choose Implementation (AA, TT or TA): ")
         let m = Console.ReadLine()
+        Console.WriteLine()
         let (time, result) = 
             match m.ToUpper() with 
             |"AA" -> runAA M N G
