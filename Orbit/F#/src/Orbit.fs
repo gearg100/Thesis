@@ -35,7 +35,7 @@ module Program =
     type MapperT = Orbit.Task.Mapper.Mapper<TElem,TElem>
     type AggregatorT = Orbit.Task.Aggregator.Aggregator<TElem>
 
-    let inp = 1000871I
+    let inp = 1000871L
 
     let runAA M N G = 
         use flag = new CountdownEvent(1)
