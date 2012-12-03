@@ -1,6 +1,0 @@
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\target\Release\Orbit2.XML
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\target\Release\TaskImplementation.dll
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\target\Release\TaskImplementation.pdb
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\Solution\obj\Release\TaskImplementation.fsprojResolveAssemblyReference.cache
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\Solution\obj\Release\TaskImplementation.dll
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\Solution\obj\Release\TaskImplementation.pdb

@@ -1,5 +1,0 @@
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\target\Release\OrbitCommon.XML
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\target\Release\Common.dll
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\target\Release\Common.pdb
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\Solution\obj\Release\Common.dll
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\Solution\obj\Release\Common.pdb

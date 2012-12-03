@@ -1,7 +1,0 @@
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\target\Release\OrbitProgram.exe.config
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\target\Release\Program.XML
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\target\Release\OrbitProgram.exe
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\target\Release\OrbitProgram.pdb
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\Solution\obj\Release\Program.fsprojResolveAssemblyReference.cache
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\Solution\obj\Release\OrbitProgram.exe
-C:\Users\gpsar\Documents\GitHub\Thesis\Orbit\F#\Solution\obj\Release\OrbitProgram.pdb
