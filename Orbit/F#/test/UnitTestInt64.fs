@@ -14,6 +14,8 @@ open Mapper
 open Orbit.Logic
 open Orbit.Benchmarks.FibonaccisLong
 
+open Orbit.Master
+
 [<AutoOpen>]
 module TestData =
     let inline onComplete<'T when 'T:comparison> 
@@ -22,8 +24,10 @@ module TestData =
             let tock = timer.Stop()
             let! set = a.FetchResults()
             result := set.Count
-            flag.Signal()
-            |> ignore
+            try
+                flag.Signal() |> ignore
+            with
+            |_ -> printfn "already signaled"
             printfn "Time Elapsed: %d ms" timer.ElapsedMilliseconds
         }
         |> Async.Start
@@ -31,18 +35,14 @@ module TestData =
 [<TestClass>]
 type ``Fibonacci Test with int64``() = 
     let ``Fibonacci Test with int64`` M N G = 
-        use flag = new CountdownEvent(1)
+        let flag = new CountdownEvent(1)
         let funcs = funcs 1000871L
         let result = ref -1
-        let timer = System.Diagnostics.Stopwatch.StartNew()
-        use mapper = new Mapper<_, _>(M, G, mapF funcs, onComplete flag timer result)
-        let aggregator = new Aggregator<_>(N)
-        (mapper:>IDependent<_>).Config aggregator
-        (aggregator:>IDependent<_>).Config mapper
-
-        (mapper:>IDependent<_>).Start()
-        (aggregator:>IDependent<_>).Start()
-        (aggregator:>IAggregator<_>).Store (integers)
+        let timer = Stopwatch.StartNew()
+        let mapperF M chunkFunc = new Mapper<_>(M, mapF funcs, chunkFunc) :> IMapper<TElem>
+        let aggregatorF N groupFunc = new Aggregator<_>(N, groupFunc) :> IAggregator<TElem>
+        use master = new Master<TElem>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
+        master.StartBenchmark(integers)
         flag.Wait()
         Assert.AreEqual(1801462, !result)
     [<TestMethod>]

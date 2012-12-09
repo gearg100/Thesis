@@ -51,6 +51,7 @@
     <Compile Include="../src/Benchmarks/OrbitBench.fs">
       <Link>OrbitBench.fs</Link>
     </Compile>
+    <Compile Include="../src/Master.fs" />
     <Compile Include="../src/Orbit.fs">
       <Link>Orbit.fs</Link>
     </Compile>

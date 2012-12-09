@@ -29,29 +29,23 @@ module Mapper =
     open Helpers
     open System.Threading
     open System.Threading.Tasks
-    type Mapper<'TSource, 'TResult when 'TSource : equality and 'TResult: comparison>
+    type Mapper<'T when 'T: comparison>
         (
-            nOfWorkers:int, grainSize:int, 
-            func : 'TSource seq -> seq<'TResult>,
-            onComplete: IAggregator<'TResult> -> unit
+            nOfWorkers:int, 
+            func : 'T seq -> seq<'T>,
+            chunkFunc: seq<'T> -> seq<seq<'T>>
         ) =
-        let dependency = ref Unchecked.defaultof<IAggregator<'TResult>>
+        let dependency = ref Unchecked.defaultof<IAggregator<'T>>
         let workers = Array.init nOfWorkers (fun _ -> actorBody dependency func)
-        let mutable i = 1
-        let mutable remaining = 0
-        interface IMapper<'TSource> with 
+        let mutable i = 0
+        interface IMapper<'T> with 
             member x.Map data =
-                Interlocked.Increment &remaining |> ignore
-                if not <| Seq.isEmpty data then 
-                    for chunk in data |> Seq.chunked grainSize do
-                        workers.[(Interlocked.Increment &i)%nOfWorkers].Post <| Job chunk
-                elif i = remaining then 
-                    onComplete !dependency           
-        interface IDependent<IAggregator<'TResult>> with
+                for chunk in chunkFunc data do
+                    workers.[(Interlocked.Increment &i)%nOfWorkers].Post <| Job chunk           
             member x.Config dependency' = 
                 dependency := dependency'
             member x.Start () = 
-                workers |> Seq.iter (fun worker-> worker.Start())
+                for worker in workers do worker.Start()
             member x.Stop () =
                 workers 
                 |> Seq.map (fun worker-> worker.PostAndAsyncReply Stop)
@@ -59,5 +53,5 @@ module Mapper =
                 |> Async.RunSynchronously
                 |> ignore
             member x.Dispose() =
-                dependency := Unchecked.defaultof<IAggregator<'TResult>>
+                dependency := Unchecked.defaultof<IAggregator<'T>>
             

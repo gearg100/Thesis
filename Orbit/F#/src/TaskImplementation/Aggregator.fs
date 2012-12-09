@@ -6,7 +6,11 @@ module Aggregator =
     open System.Collections.Concurrent
     [<Literal>]
     let defaultCapacity = 100000
-    type Aggregator<'T when 'T:comparison>(nOfWorkers:int) =
+    type Aggregator<'T when 'T:comparison>
+        (
+            nOfWorkers:int,
+            groupFunc: seq<'T> -> groupedSeq<'T>
+        ) =
         let dependency = ref Unchecked.defaultof<IMapper<'T>>
         let hashset = ConcurrentDictionary<'T, unit>(nOfWorkers,defaultCapacity)
         interface IAggregator<'T> with

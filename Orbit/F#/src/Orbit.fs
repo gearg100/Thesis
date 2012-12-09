@@ -16,8 +16,10 @@ module TestData =
             timer.Stop()
             let! set = a.FetchResults()
             result := Some(timer.ElapsedMilliseconds, set.Count)
-            flag.Signal()
-            |> ignore
+            try
+                flag.Signal() |> ignore
+            with
+            | _ -> Console.WriteLine("alreaddy signaled")            
         }
         |> Async.Start
 
@@ -28,64 +30,50 @@ open FibonaccisBigInt
 #else
 open FibonaccisLong
 #endif
+open Orbit.Master
 
 module Program =
-    type MapperA = Orbit.Agent.Mapper.Mapper<TElem,TElem>
+    type MapperA = Orbit.Agent.Mapper.Mapper<TElem>
     type AggregatorA = Orbit.Agent.Aggregator.Aggregator<TElem>
-    type MapperT = Orbit.Task.Mapper.Mapper<TElem,TElem>
+    type MapperT = Orbit.Task.Mapper.Mapper<TElem>
     type AggregatorT = Orbit.Task.Aggregator.Aggregator<TElem>
 
     let inp = 1000871L
 
     let runAA M N G = 
-        let flag = new CountdownEvent(1)
+        use flag = new CountdownEvent(1)
         let funcs = funcs inp
         let result = ref None
         let timer = Stopwatch.StartNew()
-        use mapper = new MapperA(M, G, mapF funcs, onComplete flag timer result)
-        use aggregator = new AggregatorA(N)
-        (mapper:>IDependent<_>).Config aggregator
-        (aggregator:>IDependent<_>).Config mapper
-
-        (mapper:>IDependent<_>).Start()
-        (aggregator:>IDependent<_>).Start()
-        (aggregator:>IAggregator<_>).Store (integers)
+        let mapperF M chunkFunc = new MapperA(M, mapF funcs, chunkFunc) :> IMapper<TElem>
+        let aggregatorF N groupFunc = new AggregatorA(N, groupFunc) :> IAggregator<TElem>
+        use master = new Master<TElem>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
+        master.StartBenchmark integers
         flag.Wait()
-        flag.Dispose()
         result.Value.Value
 
     let runTT M N G = 
-        let flag = new CountdownEvent(1)
+        use flag = new CountdownEvent(1)
         let funcs = funcs inp
         let result = ref None
         let timer = Stopwatch.StartNew()
-        use mapper = new MapperT(M, G, mapF funcs, onComplete flag timer result)
-        use aggregator = new AggregatorT(N)
-        (mapper:>IDependent<_>).Config aggregator
-        (aggregator:>IDependent<_>).Config mapper
-
-        (mapper:>IDependent<_>).Start()
-        (aggregator:>IDependent<_>).Start()
-        (aggregator:>IAggregator<_>).Store (integers)
+        let mapperF M chunkFunc = new MapperT(M, mapF funcs, chunkFunc) :> IMapper<TElem>
+        let aggregatorF N groupFunc = new AggregatorT(N, groupFunc) :> IAggregator<TElem>
+        use master = new Master<TElem>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
+        master.StartBenchmark integers
         flag.Wait()
-        flag.Dispose()
         result.Value.Value
 
     let runTA M N G = 
-        let flag = new CountdownEvent(1)
+        use flag = new CountdownEvent(1)
         let funcs = funcs inp
         let result = ref None
         let timer = Stopwatch.StartNew()
-        use mapper = new MapperT(M, G, mapF funcs, onComplete flag timer result)
-        use aggregator = new AggregatorA(N)
-        (mapper:>IDependent<_>).Config aggregator
-        (aggregator:>IDependent<_>).Config mapper
-
-        (mapper:>IDependent<_>).Start()
-        (aggregator:>IDependent<_>).Start()
-        (aggregator:>IAggregator<_>).Store (integers)
+        let mapperF M chunkFunc = new MapperT(M, mapF funcs, chunkFunc) :> IMapper<TElem>
+        let aggregatorF N groupFunc = new AggregatorA(N, groupFunc) :> IAggregator<TElem>
+        use master = new Master<TElem>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
+        master.StartBenchmark integers
         flag.Wait()
-        flag.Dispose()
         result.Value.Value
     
     [<EntryPoint>]

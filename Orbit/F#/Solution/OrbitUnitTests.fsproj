@@ -41,17 +41,18 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="../test/Tests.fsx">
+      <Link>Tests.fsx</Link>
+    </None>
     <Compile Include="../src/Benchmarks/OrbitBench.fs">
       <Link>OrbitBench.fs</Link>
     </Compile>
+    <Compile Include="../src/Master.fs" />
     <Compile Include="../test/UnitTestInt64.fs">
       <Link>UnitTestInt64.fs</Link>
     </Compile>
     <None Include="App.config" />
     <None Include="MSTest.runsettings" />
-    <None Include="../test/Tests.fsx">
-      <Link>Tests.fsx</Link>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="AgentImplementation.fsproj">
