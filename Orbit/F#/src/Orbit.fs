@@ -38,7 +38,11 @@ module Program =
     type MapperT = Orbit.Task.Mapper.Mapper<TElem>
     type AggregatorT = Orbit.Task.Aggregator.Aggregator<TElem>
 
+#if BigInt
+    let inp = 1000871I
+#else
     let inp = 1000871L
+#endif  
 
     let runAA M N G = 
         use flag = new CountdownEvent(1)
