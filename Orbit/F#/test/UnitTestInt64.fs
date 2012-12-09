@@ -22,6 +22,7 @@ module TestData =
         (flag:CountdownEvent) (timer:Stopwatch) (result: int ref) (a:IAggregator<'T>) = 
         async {
             let tock = timer.Stop()
+            do! Async.Sleep(1000)
             let! set = a.FetchResults()
             result := set.Count
             try

@@ -14,12 +14,13 @@ module TestData =
         (flag:CountdownEvent) (timer:Stopwatch) (result: (int64*int) option ref) (a:IAggregator<'T>) = 
         async {
             timer.Stop()
+            do! Async.Sleep(1000)
             let! set = a.FetchResults()
             result := Some(timer.ElapsedMilliseconds, set.Count)
             try
                 flag.Signal() |> ignore
             with
-            | _ -> Console.WriteLine("alreaddy signaled")            
+            | _ -> Console.WriteLine("already signaled")            
         }
         |> Async.Start
 
