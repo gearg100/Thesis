@@ -39,10 +39,11 @@ type ``Fibonacci Test with int64``() =
         let flag = new CountdownEvent(1)
         let funcs = funcs 1000871L
         let result = ref -1
-        let timer = Stopwatch.StartNew()
-        let mapperF M chunkFunc = new Mapper<_>(M, mapF funcs, chunkFunc) :> IMapper<TElem>
-        let aggregatorF N groupFunc = new Aggregator<_>(N, groupFunc) :> IAggregator<TElem>
+        let timer = Stopwatch()
+        let mapperF M coordinator = new Mapper<_>(coordinator, M, G, mapF funcs) :> IMapper<TElem>
+        let aggregatorF N coordinator = new Aggregator<_>(coordinator, N) :> IAggregator<TElem>
         use master = new Master<TElem>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
+        timer.Start()
         master.StartBenchmark(integers)
         flag.Wait()
         Assert.AreEqual(1801462, !result)

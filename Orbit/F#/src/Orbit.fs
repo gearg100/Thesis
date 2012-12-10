@@ -49,10 +49,11 @@ module Program =
         use flag = new CountdownEvent(1)
         let funcs = funcs inp
         let result = ref None
-        let timer = Stopwatch.StartNew()
-        let mapperF M chunkFunc = new MapperA(M, mapF funcs, chunkFunc) :> IMapper<TElem>
-        let aggregatorF N groupFunc = new AggregatorA(N, groupFunc) :> IAggregator<TElem>
+        let timer = Stopwatch()
+        let mapperF M coordinator = new MapperA(coordinator, M, G, mapF funcs) :> IMapper<TElem>
+        let aggregatorF N coordinator = new AggregatorA(coordinator, N) :> IAggregator<TElem>
         use master = new Master<TElem>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
+        timer.Start()
         master.StartBenchmark integers
         flag.Wait()
         result.Value.Value
@@ -61,10 +62,11 @@ module Program =
         use flag = new CountdownEvent(1)
         let funcs = funcs inp
         let result = ref None
-        let timer = Stopwatch.StartNew()
-        let mapperF M chunkFunc = new MapperT(M, mapF funcs, chunkFunc) :> IMapper<TElem>
-        let aggregatorF N groupFunc = new AggregatorT(N, groupFunc) :> IAggregator<TElem>
+        let timer = Stopwatch()
+        let mapperF M coordinator = new MapperT(coordinator, M, G, mapF funcs) :> IMapper<TElem>
+        let aggregatorF N coordinator = new AggregatorT(coordinator, N) :> IAggregator<TElem>
         use master = new Master<TElem>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
+        timer.Start()
         master.StartBenchmark integers
         flag.Wait()
         result.Value.Value
@@ -73,10 +75,11 @@ module Program =
         use flag = new CountdownEvent(1)
         let funcs = funcs inp
         let result = ref None
-        let timer = Stopwatch.StartNew()
-        let mapperF M chunkFunc = new MapperT(M, mapF funcs, chunkFunc) :> IMapper<TElem>
-        let aggregatorF N groupFunc = new AggregatorA(N, groupFunc) :> IAggregator<TElem>
+        let timer = Stopwatch()
+        let mapperF M coordinator = new MapperT(coordinator, M, G, mapF funcs) :> IMapper<TElem>
+        let aggregatorF N coordinator = new AggregatorA(coordinator, N) :> IAggregator<TElem>
         use master = new Master<TElem>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
+        timer.Start()
         master.StartBenchmark integers
         flag.Wait()
         result.Value.Value

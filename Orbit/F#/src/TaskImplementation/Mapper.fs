@@ -9,22 +9,24 @@ module Mapper =
 
     type Mapper<'T when 'T : comparison>
         (
-            nOfWorkers:int,
-            func : seq<'T> -> seq<'T>,
-            chunkFunc : seq<'T> -> seq<seq<'T>>
+            coordinator: ICoordinator,
+            nOfWorkers:int, chunkLimit:int,
+            func : seq<'T> -> seq<'T>
         ) =
         let dependency = ref Unchecked.defaultof<IAggregator<'T>>
         let mutable i = 1
         let mutable remaining = 0
         interface IMapper<'T> with
             member x.Map data = 
-                for chunk in chunkFunc data do 
+                let mutable acc = 0
+                for chunk in Seq.chunked chunkLimit data do 
+                    acc <- acc + 1
                     Task.Factory.StartNew(fun () -> 
                         func chunk
                         |> (!dependency).Store
                     ) |> ignore
-                     
-        interface IDependent<IAggregator<'T>> with
+                coordinator.Add <| acc - 1
+
             member x.Config dependency' = 
                 dependency := dependency'
             member x.Start () = 

@@ -3,12 +3,11 @@
 module Aggregator = 
     open Orbit.Types
     open System.Linq
-
+    open Helpers
     type internal AggregatorMessage<'T when 'T : comparison> =
-        //|Store of seq<'T>
-        |Store of AsyncReplyChannel<seq<'T>>*seq<'T>
+        |Store of seq<'T>
         |Fetch of AsyncReplyChannel<Set<'T>>
-        |Stop of AsyncReplyChannel<unit>
+        |Stop
 
     let inline internal actorBody<'T when 'T : comparison> 
         (mapper: IMapper<'T> ref) =
@@ -18,36 +17,35 @@ module Aggregator =
                 async {
                     let! msg = inbox.Receive()
                     match msg with
-                    |Store(channel, set) ->
+                    |Store(set) ->
                         let filteredset = 
-                            HashSet<_>(set |> Seq.filter (not << hashset.Contains))                           
+                            HashSet<_>(set |> Seq.filter (not << hashset.Contains))
+                        (!mapper).Map filteredset                    
                         hashset.UnionWith filteredset                    
-                        channel.Reply filteredset
                         return! loop()
                     |Fetch channel->
                         channel.Reply <| Set.ofSeq hashset
                         return! loop()
-                    |Stop channel->
-                        channel.Reply()
+                    |Stop ->
+                        ()
                 }
             loop()
         )
 
     type Aggregator<'T when 'T:comparison>
         (   
-            nOfWorkers:int, 
-            groupFunc: seq<'T> -> groupedSeq<'T>
+            coordinator: ICoordinator,
+            nOfWorkers:int
         ) =
         let dependency = ref Unchecked.defaultof<IMapper<'T>>
-        let workers = Array.init nOfWorkers (fun _ -> actorBody dependency)
+        let workers = Array.init nOfWorkers <| fun _ -> actorBody dependency
         interface IAggregator<'T> with
             member x.Store data =
-                for (i,group) in groupFunc data do
-                    async {
-                        let! rep = workers.[i].PostAndAsyncReply <| fun channel -> Store(channel, group)
-                        dependency.Value.Map rep
-                    }
-                    |> Async.Start
+                let mutable acc = 0
+                for group in data.GroupBy(System.Func<_,_>(indexOf nOfWorkers)) do
+                    acc <- acc + 1
+                    workers.[group.Key].Post <| Store(group)
+                coordinator.Add <| acc - 1
             member x.FetchResults () = async {
                 let! sets = 
                     workers 
@@ -60,11 +58,7 @@ module Aggregator =
             member x.Start () = 
                 for worker in workers do worker.Start() 
             member x.Stop () =
-                workers 
-                |> Seq.map (fun worker-> worker.PostAndAsyncReply Stop)
-                |> Async.Parallel
-                |> Async.RunSynchronously
-                |> ignore
+                for worker in workers do worker.Post Stop
             member x.Dispose() =
                 dependency := Unchecked.defaultof<IMapper<'T>>
 

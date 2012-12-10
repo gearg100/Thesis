@@ -1,6 +1,6 @@
 ﻿module Helpers
 
-let inline indexOf N num = (hash num) % N |> abs
+let inline indexOf N num = (abs (hash num) % N) |> abs
 
 [<RequireQualifiedAccess>]
 module Seq =

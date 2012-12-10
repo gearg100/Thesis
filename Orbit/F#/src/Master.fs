@@ -2,38 +2,54 @@
 
 open Helpers
 open System
+open System.Linq
 open System.Threading
 
-open Orbit.Types   
+open Orbit.Types 
+
+type internal Coordinator(onComplete: unit -> unit) =
+    let actor = Agent<_>.Start(fun inbox ->
+        let remaining = ref 1
+        let rec loop() = async {
+            let! n = inbox.Receive()
+            remaining := !remaining + n
+            if !remaining = 0 && n = -1 then 
+                onComplete()
+            return! loop()                
+        }
+        loop()
+    )  
+    member x.Start() = actor.Start()
+
+    interface ICoordinator with
+        member x.Add n = actor.Post n
+        member x.Dispose() = (actor:>IDisposable).Dispose()
+
+type Coordinator2(onComplete: unit -> unit) =
+    let mutable remaining = 1
+    interface ICoordinator with
+        member x.Add n = 
+            Interlocked.Add(&remaining,n) |> ignore
+            if remaining = 0 && n = -1 then 
+                onComplete()
+        member x.Dispose() = ()
 
 type Master<'T when 'T:comparison>
     (
         M, N, chunkSize:int, 
-        mapperF: int -> (seq<'T> -> seq<seq<'T>>) -> IMapper<'T>, 
-        aggregatorF: int -> (seq<'T> -> groupedSeq<'T>) -> IAggregator<'T>,
+        mapperF: int -> ICoordinator -> IMapper<'T>, 
+        aggregatorF: int -> ICoordinator -> IAggregator<'T>,
         onComplete: IAggregator<'T> -> unit
-    ) =
-
-    let mutable remaining = 0
-    let chunkFunc aggregator (sq: seq<'T>) =
-        Interlocked.Decrement(&remaining) |> ignore
-        if not <| Seq.isEmpty sq then
-            let chunked = Seq.chunked chunkSize sq
-            Interlocked.Add(&remaining, Seq.length chunked) |> ignore
-            chunked
-        else
-            if remaining = 0 then onComplete aggregator
-            Seq.empty
-    let groupFunc (sq: seq<'T>) =
-        let chunks = Seq.groupBy (indexOf N) sq
-        Interlocked.Add(&remaining, Seq.length chunks - 1) |> ignore
-        chunks
-
-    let aggregator = aggregatorF N groupFunc      
-    let mapper = mapperF M (chunkFunc aggregator)
+    ) as this =
+    let coordinator = new Coordinator2(fun () -> onComplete this.Aggregator) :> ICoordinator
+    
+    let aggregator = aggregatorF N coordinator :> IAggregator<_>
+    let mapper = mapperF M coordinator :> IMapper<_>
     do
         mapper.Config aggregator
         aggregator.Config mapper
+
+    member x.Aggregator = aggregator
 
     member x.StartBenchmark(initData : seq<'T>) =
         mapper.Start()
@@ -46,4 +62,5 @@ type Master<'T when 'T:comparison>
         member x.Dispose() =
             mapper.Dispose()
             aggregator.Dispose()
+            coordinator.Dispose()
 
