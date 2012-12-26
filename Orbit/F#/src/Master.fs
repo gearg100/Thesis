@@ -25,7 +25,7 @@ type internal Coordinator(onComplete: unit -> unit) =
         member x.Add n = actor.Post n
         member x.Dispose() = (actor:>IDisposable).Dispose()
 
-type Coordinator2(onComplete: unit -> unit) =
+type internal Coordinator2(onComplete: unit -> unit) =
     let mutable remaining = 1
     interface ICoordinator with
         member x.Add n = 

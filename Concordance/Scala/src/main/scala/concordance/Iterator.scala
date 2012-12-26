@@ -23,13 +23,13 @@ class ConcordanceIterator[A](col:IndexedSeq[A], chunkLimit:Int, begin:Int, end:I
         n = 0
         i = 0
         current = nextSlice()
-        fun = maincase
+        fun = mainCase
       }
     }
     res
   }
 
-  private def maincase(): (List[A],Int) = {
+  private def mainCase(): (List[A],Int) = {
     val res = (current,n + i)
     current = current.tail
     i += 1
@@ -45,7 +45,7 @@ class ConcordanceIterator[A](col:IndexedSeq[A], chunkLimit:Int, begin:Int, end:I
     if (begin == 0)
       () => init()
     else
-      () => maincase()
+      () => mainCase()
 
   def next: (List[A],Int) = fun()
 }

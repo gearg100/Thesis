@@ -1,11 +1,11 @@
+clean
+compile
+sbt gen-idea
+gen-idea
+reload
+gen-idea
+exit
+compile
 reload
 compile
-clean
-compile
-clean
-compile
-assembly
-run
-exit
-test
-run 
+gen-idea

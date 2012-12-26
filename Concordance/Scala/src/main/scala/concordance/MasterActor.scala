@@ -2,11 +2,10 @@ package concordance
 
 import akka.{actor,event,dispatch}
 import actor.{Actor, ActorRef}
-import dispatch.Future
+import concurrent.{Future, ExecutionContext}
 import event.Logging
 import collection.mutable.HashMap
 import collection.IndexedSeq
-import akka.dispatch.ExecutionContext
 
 case object Start
 case object Stop
@@ -41,15 +40,16 @@ abstract class MasterActor(
       implicit val ctx = context.dispatcher
       it.grouped(G)
         .grouped(G)
-        .foldLeft(Future {}){ (acc, chunk) =>
-        acc flatMap { _ => Future.traverse (chunk.toIterable) ( g => 
-	        Future { 
-	          g.toIterable groupBy (t => indexOf(t._1,N)) foreach {
-	        	  t => workers(t._1) ! t._2    	  
-	          }
-	        } 
+        .foldLeft(Future {}){ (acc: Future[Unit], chunk) =>
+        acc.flatMap({
+          _ => Future.traverse(chunk.toIterable)(g =>
+            Future {
+              g.toIterable groupBy (t => indexOf(t._1, N)) foreach {
+                t => workers(t._1) ! t._2
+              }
+            }
           ) map (_ => ())
-        }
+        })
       } map { 
         case _ =>
           log("all sent")

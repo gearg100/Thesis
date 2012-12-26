@@ -4,7 +4,7 @@ import scala.collection.mutable.HashMap
 import java.util.concurrent.CountDownLatch
 
 object ConcordanceAkka extends App {
-  import akka.actor.{ActorRef, Props, ActorSystem}
+  import akka.actor.{Props, ActorSystem}
   import common._
   
   type Mode = Release

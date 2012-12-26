@@ -3,7 +3,7 @@ import AssemblyKeys._
 
 name := "Concordance"
 
-scalaVersion := "2.9.2"
+scalaVersion := "2.10.0"
 
 autoCompilerPlugins := true
 
