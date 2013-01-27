@@ -33,11 +33,13 @@ open FibonaccisLong
 #endif
 open Orbit.Master
 
+
+
 module Program =
-    type MapperA = Orbit.Agent.Mapper.Mapper<TElem>
-    type AggregatorA = Orbit.Agent.Aggregator.Aggregator<TElem>
-    type MapperT = Orbit.Task.Mapper.Mapper<TElem>
-    type AggregatorT = Orbit.Task.Aggregator.Aggregator<TElem>
+    type MapperA<'T when 'T: comparison> = Orbit.Agent.Mapper.Mapper<'T>
+    type AggregatorA<'T when 'T: comparison> = Orbit.Agent.Aggregator.Aggregator<'T>
+    type MapperT<'T when 'T: comparison> = Orbit.Task.Mapper.Mapper<'T>
+    type AggregatorT<'T when 'T: comparison> = Orbit.Task.Aggregator.Aggregator<'T>
 
 #if BigInt
     let inp = 1000871I
@@ -50,9 +52,9 @@ module Program =
         let funcs = funcs inp
         let result = ref None
         let timer = Stopwatch()
-        let mapperF M coordinator = new MapperA(coordinator, M, G, mapF funcs) :> IMapper<TElem>
-        let aggregatorF N coordinator = new AggregatorA(coordinator, N) :> IAggregator<TElem>
-        use master = new Master<TElem>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
+        let mapperF M coordinator = new MapperA<_>(coordinator, M, G, mapF funcs) :> IMapper<_>
+        let aggregatorF N coordinator = new AggregatorA<_>(coordinator, N) :> IAggregator<_>
+        use master = new Master<_>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
         timer.Start()
         master.StartBenchmark integers
         flag.Wait()
@@ -63,9 +65,9 @@ module Program =
         let funcs = funcs inp
         let result = ref None
         let timer = Stopwatch()
-        let mapperF M coordinator = new MapperT(coordinator, M, G, mapF funcs) :> IMapper<TElem>
-        let aggregatorF N coordinator = new AggregatorT(coordinator, N) :> IAggregator<TElem>
-        use master = new Master<TElem>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
+        let mapperF M coordinator = new MapperT<_>(coordinator, M, G, mapF funcs) :> IMapper<_>
+        let aggregatorF N coordinator = new AggregatorT<_>(coordinator, N) :> IAggregator<_>
+        use master = new Master<_>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
         timer.Start()
         master.StartBenchmark integers
         flag.Wait()
@@ -76,9 +78,9 @@ module Program =
         let funcs = funcs inp
         let result = ref None
         let timer = Stopwatch()
-        let mapperF M coordinator = new MapperT(coordinator, M, G, mapF funcs) :> IMapper<TElem>
-        let aggregatorF N coordinator = new AggregatorA(coordinator, N) :> IAggregator<TElem>
-        use master = new Master<TElem>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
+        let mapperF M coordinator = new MapperT<_>(coordinator, M, G, mapF funcs) :> IMapper<_>
+        let aggregatorF N coordinator = new AggregatorA<_>(coordinator, N) :> IAggregator<_>
+        use master = new Master<_>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
         timer.Start()
         master.StartBenchmark integers
         flag.Wait()
