@@ -7,6 +7,3 @@ type ProblemDef<'T> = {
     initData: 'T seq
 }
 
-type OrbitSolver<'T> = 
-    abstract member Solve : ProblemDef<'T> -> seq<'T>
-

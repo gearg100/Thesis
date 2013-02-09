@@ -25,15 +25,7 @@ module TestData =
         |> Async.Start
 
 open Orbit.Benchmarks
-
-#if BigInt
-open FibonaccisBigInt
-#else
-open FibonaccisLong
-#endif
 open Orbit.Master
-
-
 
 module Program =
     type MapperA<'T when 'T: comparison> = Orbit.Agent.Mapper.Mapper<'T>
@@ -41,18 +33,19 @@ module Program =
     type MapperT<'T when 'T: comparison> = Orbit.Task.Mapper.Mapper<'T>
     type AggregatorT<'T when 'T: comparison> = Orbit.Task.Aggregator.Aggregator<'T>
 
+    let transform =
 #if BigInt
-    let inp = 1000871I
+        fun i -> bigint i
 #else
-    let inp = 1000871L
+        int64
 #endif  
-
+    let inp = 1000871
     let runAA M N G = 
         use flag = new CountdownEvent(1)
-        let funcs = funcs inp
+        let funcs, integers = Fibonaccis.definition transform inp
         let result = ref None
         let timer = Stopwatch()
-        let mapperF M coordinator = new MapperA<_>(coordinator, M, G, mapF funcs) :> IMapper<_>
+        let mapperF M coordinator = new MapperA<_>(coordinator, M, G, funcs) :> IMapper<_>
         let aggregatorF N coordinator = new AggregatorA<_>(coordinator, N) :> IAggregator<_>
         use master = new Master<_>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
         timer.Start()
@@ -62,10 +55,10 @@ module Program =
 
     let runTT M N G = 
         use flag = new CountdownEvent(1)
-        let funcs = funcs inp
+        let funcs, integers = Fibonaccis.definition transform inp
         let result = ref None
         let timer = Stopwatch()
-        let mapperF M coordinator = new MapperT<_>(coordinator, M, G, mapF funcs) :> IMapper<_>
+        let mapperF M coordinator = new MapperT<_>(coordinator, M, G, funcs) :> IMapper<_>
         let aggregatorF N coordinator = new AggregatorT<_>(coordinator, N) :> IAggregator<_>
         use master = new Master<_>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
         timer.Start()
@@ -75,10 +68,10 @@ module Program =
 
     let runTA M N G = 
         use flag = new CountdownEvent(1)
-        let funcs = funcs inp
+        let funcs, integers = Fibonaccis.definition transform inp
         let result = ref None
         let timer = Stopwatch()
-        let mapperF M coordinator = new MapperT<_>(coordinator, M, G, mapF funcs) :> IMapper<_>
+        let mapperF M coordinator = new MapperT<_>(coordinator, M, G, funcs) :> IMapper<_>
         let aggregatorF N coordinator = new AggregatorA<_>(coordinator, N) :> IAggregator<_>
         use master = new Master<_>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
         timer.Start()

@@ -52,6 +52,8 @@
     <Compile Include="NotSimpleSolverFunctions.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
+    <None Include="Test.fsx" />
+    <None Include="Run.fsx" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

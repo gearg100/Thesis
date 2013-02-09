@@ -12,7 +12,7 @@ open Orbit.Agent
 open Aggregator
 open Mapper
 open Orbit.Logic
-open Orbit.Benchmarks.FibonaccisLong
+open Orbit.Benchmarks
 
 open Orbit.Master
 
@@ -37,12 +37,12 @@ module TestData =
 type ``Fibonacci Test with int64``() = 
     let ``Fibonacci Test with int64`` M N G = 
         let flag = new CountdownEvent(1)
-        let funcs = funcs 1000871L
+        let funcs,integers = Fibonaccis.definition int64 1000871
         let result = ref -1
         let timer = Stopwatch()
-        let mapperF M coordinator = new Mapper<_>(coordinator, M, G, mapF funcs) :> IMapper<TElem>
-        let aggregatorF N coordinator = new Aggregator<_>(coordinator, N) :> IAggregator<TElem>
-        use master = new Master<TElem>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
+        let mapperF M coordinator = new Mapper<_>(coordinator, M, G, funcs) :> IMapper<int64>
+        let aggregatorF N coordinator = new Aggregator<_>(coordinator, N) :> IAggregator<int64>
+        use master = new Master<_>(M,N,G, mapperF, aggregatorF, onComplete flag timer result)
         timer.Start()
         master.StartBenchmark(integers)
         flag.Wait()

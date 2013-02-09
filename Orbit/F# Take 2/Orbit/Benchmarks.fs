@@ -22,9 +22,7 @@ module Fibonaccis =
             let f2 n x = (fib (p (transformList [1;5]) (x % modulo)) + p (transformList [2;5;-1]) x) % n
             let f3 n x = (fib (p (transformList [1;10]) (x % modulo)) + p (transformList [-1;0;8;0]) x) % n
             let f4 n x = (fib (p (transformList [8;3]) (s (transformList [0;49;98;100]) (x% (transform 100)))) + p [-one] x) % n
-            let f5 n x = (fib (p (transformList [10;0]) (s (transformList [0;900;999;1000]) (x% (transform 1000)))) + p [one] x) % n
-
-            
+            let f5 n x = (fib (p (transformList [10;0]) (s (transformList [0;900;999;1000]) (x% (transform 1000)))) + p [one] x) % n            
 
             fun x -> [f1 n x;f2 n x;f3 n x;f4 n x;f5 n x] :> seq<_>
 

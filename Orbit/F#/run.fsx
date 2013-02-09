@@ -10,7 +10,7 @@ module Helpers =
     let inline trim (str:string) = str.Trim()
     let inline startsWith (start:string) (str:string) = str.StartsWith(start)
 
-let (|Result|) (stdout:string) = //result and time
+let (|Result|) (stdout:string) =
     let lines = 
         stdout
         |> split '\n'

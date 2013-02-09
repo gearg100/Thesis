@@ -8,7 +8,7 @@ module NotSimpleFunctions =
     open Helpers
     open System.Threading
     open System.Threading.Tasks
-    let solveWithAgentTasks<'T when 'T: equality> (M,G) =
+    let solveWithAgentTasks<'T when 'T: equality> M G =
         let scheduler = Helpers.CustomTaskSchedulers.LimitedConcurrencyLevelTaskScheduler M
         fun { initData = initData; generators = generators } ->
             use flag = new ManualResetEventSlim(false)
@@ -91,7 +91,7 @@ module NotSimpleFunctions =
             loop()
             
     open AgentSystem    
-    let solveWithAgentWorkers<'T when 'T:equality> (M,G) { initData = initData; generators = generators } =
+    let solveWithAgentWorkers<'T when 'T:equality> M G { initData = initData; generators = generators } =
         use flag = new ManualResetEventSlim()
         let foundSoFar = MSet<'T>()
         let workPile = Agent.start <| fun inbox ->

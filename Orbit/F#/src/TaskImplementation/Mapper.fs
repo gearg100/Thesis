@@ -11,7 +11,7 @@ module Mapper =
         (
             coordinator: ICoordinator,
             nOfWorkers:int, chunkLimit:int,
-            func : seq<'T> -> seq<'T>
+            func : 'T -> seq<'T>
         ) =
         let dependency = ref Unchecked.defaultof<IAggregator<'T>>
         let mutable i = 1
@@ -22,7 +22,9 @@ module Mapper =
                 for chunk in Seq.chunked chunkLimit data do 
                     acc <- acc + 1
                     Task.Factory.StartNew(fun () -> 
-                        func chunk
+                        chunk
+                        |> Seq.collect func
+                        |> Seq.toArray
                         |> (!dependency).Store
                     ) |> ignore
                 coordinator.Add <| acc - 1

@@ -10,14 +10,14 @@ module Mapper =
 
     let inline internal actorBody<'T,'TResult when 'TResult: comparison> 
         (reducer:IAggregator<'TResult> ref) 
-        (func: 'T seq -> seq<'TResult>)
+        (func: 'T -> seq<'TResult>)
         = new Agent<MapperMessage<'T>>(fun inbox ->
         let rec loop () = 
             async {
                 let! msg = inbox.Receive()
                 match msg with
                 |Job set ->
-                    let res = func set
+                    let res = Seq.collect func set |> Seq.toArray
                     (!reducer).Store <| res
                     return! loop()
                 |Stop ->
@@ -33,7 +33,7 @@ module Mapper =
         (
             coordinator: ICoordinator,
             nOfWorkers:int, chunkLimit:int,
-            func : 'T seq -> seq<'T>
+            func : 'T -> seq<'T>
         ) =
         let dependency = ref Unchecked.defaultof<IAggregator<'T>>
         let workers = Array.init nOfWorkers <| fun _ -> actorBody dependency func

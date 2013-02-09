@@ -44,26 +44,26 @@ module SimpleFunctions =
     open Helpers
     open System.Threading
     let solveWithAgentAsyncs<'T when 'T: equality> G { initData = initData; generators = generators } = 
-        use flag = new ManualResetEventSlim(false)
+        use flag = new ManualResetEventSlim()
         let foundSoFar = MSet<'T>()
         let workPile = Agent.start <| fun inbox ->
             let remaining = ref 0
             let rec loop() = async {
                 let! data = Agent.receive inbox
-                let data = data |> Seq.filter (not << contains foundSoFar) |> Array.ofSeq
+                let data = data |> Seq.filter (not << contains foundSoFar) |> Seq.toArray
                 unionWith foundSoFar data
                 let jobs = ref -1
-                for chunk in data |> Seq.distinct |> Seq.chunked G do
+                for chunk in data |> Seq.distinct |> Seq.chunked 3000 do
                     Async.Start <| async {
                         Seq.collect generators chunk
                         |> Array.ofSeq
-                        |> inbox.Post
+                        |> Agent.post inbox
                     }
                     incr jobs
                 remaining := !remaining + !jobs
                 if (!remaining = 0 && !jobs = -1) then
                     ManualResetEventSlim.set flag |> ignore
-                else 
+                else
                     return! loop()
             }
             loop()
