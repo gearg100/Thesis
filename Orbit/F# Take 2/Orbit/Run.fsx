@@ -65,7 +65,7 @@ let int64ResultPath =
     __SOURCE_DIRECTORY__ + @"\timesInt64" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
 let bigintResultPath =
     __SOURCE_DIRECTORY__ + @"\timesBigInt" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
-
+Console.ReadLine()
 do 
     use stream = File.Create(int64ResultPath)
     use writer = new StreamWriter(stream)
