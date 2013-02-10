@@ -29,11 +29,13 @@ let makePSI fileName arguments =
         RedirectStandardError = true
     )
 
+let directory = __SOURCE_DIRECTORY__
+
 let path = __SOURCE_DIRECTORY__ + "/bin/Release/Orbit.exe"
 
 let psi = 
     if Environment.OSVersion.Platform = PlatformID.Unix then
-        makePSI @"mono" <| "--gc=sgen --runtime=v4.0 " + path
+        makePSI @"mono" <| "--gc=sgen --runtime=v4.0 " + "\"" + path + "\""
     else
         makePSI path @""
 
@@ -62,9 +64,9 @@ Console.Write("nOfTimes each test will run: ")
 let times = int <| Console.ReadLine()
 
 let int64ResultPath =
-    __SOURCE_DIRECTORY__ + @"/timesInt64_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
+    directory + @"/timesInt64_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
 let bigintResultPath =
-    __SOURCE_DIRECTORY__ + @"/timesBigInt_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
+    directory + @"/timesBigInt_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
 Console.WriteLine("int64 results file: " + int64ResultPath)
 Console.WriteLine("int64 results file: " + bigintResultPath)
 Console.ReadLine()
