@@ -3,7 +3,7 @@
 open Orbit.Main
 open Orbit.Benchmarks
 
-let inline (|Pair|) (pair:System.Collections.Generic.KeyValuePair<_,_>) = pair.Key, fst pair.Value, snd pair.Value
+let (|Pair|) (pair:System.Collections.Generic.KeyValuePair<_,_>) = pair.Key, fst pair.Value, snd pair.Value
 
 for Pair(_, name, solve) in solvers 8 5000 do
     let transformer (i:int) = int64 i

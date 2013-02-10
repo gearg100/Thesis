@@ -19,7 +19,7 @@ module Main=
 
     [<EntryPoint>]
     let main argv = 
-        Console.Write("Choose mode [1 -> int64, 2 -> bigint] (default = int64):")
+        Console.Write("Choose mode [1 -> int64, 2 -> bigint] (default = int64): ")
         let mode = 
             let flag, number = Console.ReadLine() |> Int32.TryParse
             if flag then number else 1

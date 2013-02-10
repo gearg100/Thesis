@@ -65,8 +65,8 @@ let int64ResultPath =
     __SOURCE_DIRECTORY__ + @"/timesInt64_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
 let bigintResultPath =
     __SOURCE_DIRECTORY__ + @"/timesBigInt_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
-Console.WriteLine("int64 results file" + int64ResultPath)
-Console.WriteLine("int64 results file" + bigintResultPath)
+Console.WriteLine("int64 results file: " + int64ResultPath)
+Console.WriteLine("int64 results file: " + bigintResultPath)
 Console.ReadLine()
 do 
     use stream = File.Create(int64ResultPath)
@@ -74,7 +74,7 @@ do
     writer.AutoFlush <- true
     for M in [1;2;4;8;16;32;64] do
     for G in [500;1000; 5000;10000;50000] do
-        match runAndProcessResult 0 psi M G (sprintf "1\n%d\n%d\n2\n" M G) with
+        match runAndProcessResult 0 psi M G (sprintf "1\n%d\n%d\n4\n" M G) with
         |Some(resultString) ->
             writer.WriteLine(sprintf "(%d, %d): %s" M G resultString)
         |None ->
@@ -85,7 +85,7 @@ do
     writer.AutoFlush <- true
     for M in [1;2;4;8;16;32;64] do
     for G in [500;1000; 5000;10000;50000] do
-        match runAndProcessResult 0 psi M G (sprintf "2\n%d\n%d\n2\n" M G) with
+        match runAndProcessResult 0 psi M G (sprintf "2\n%d\n%d\n4\n" M G) with
         |Some(resultString) ->
             writer.WriteLine(sprintf "(%d, %d): %s" M G resultString)
         |None ->
