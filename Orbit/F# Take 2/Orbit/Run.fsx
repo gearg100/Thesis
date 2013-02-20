@@ -16,7 +16,7 @@ let (|TimedResult|) line =
         System.Text.RegularExpressions.Regex.Match(
             line, @"Result: (\d+) - Time Elapsed: (\d+) ms"
         )
-    int m.Groups.[1].Value, int64 m.Groups.[2].Value
+    m.Groups.[1].Value, m.Groups.[2].Value
 
 let makePSI fileName arguments =
     ProcessStartInfo( 
@@ -52,13 +52,13 @@ let rec runAndProcessResult nOfReruns (psi:ProcessStartInfo) M G input =
             runAndProcessResult (nOfReruns + 1) psi M G input
         else
             printfn "error"
-            None
+            ("<error>","<error>")
     else
         let resultLine =  stdout |> split '\n' |> last
         let (TimedResult(result, timeElapsed)) = resultLine
-        let resStr = sprintf "%d,%d" result timeElapsed
+        let resStr = sprintf "%s,%s" result timeElapsed
         printfn "%s" resultLine
-        Some(resStr)
+        result, timeElapsed
 
 Console.Write("nOfTimes each test will run: ")
 let times = int <| Console.ReadLine()
@@ -68,30 +68,33 @@ let int64ResultPath =
 let bigintResultPath =
     directory + @"/timesBigInt_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
 Console.WriteLine("int64 results file: " + int64ResultPath)
-Console.WriteLine("int64 results file: " + bigintResultPath)
+Console.WriteLine("bigInt results file: " + bigintResultPath)
 Console.ReadLine()
-do 
-    use stream = File.Create(int64ResultPath)
+
+let MList = [1;2;4;8;16;32;64]
+let GList = [500;1000; 5000;10000;50000]
+
+let run choice =
+    use stream = File.Create(if choice = 1 then int64ResultPath else bigintResultPath)
     use writer = new StreamWriter(stream)
     writer.AutoFlush <- true
-    for M in [1;2;4;8;16;32;64] do
-    for G in [500;1000; 5000;10000;50000] do
-        match runAndProcessResult 0 psi M G (sprintf "1\n%d\n%d\n4\n" M G) with
-        |Some(resultString) ->
-            writer.WriteLine(sprintf "%d,%d,%s" M G resultString)
-        |None ->
-            writer.WriteLine("%d,%d,%d,<error>")
-do 
-    use stream = File.Create(bigintResultPath)
-    use writer = new StreamWriter(stream)
-    writer.AutoFlush <- true
-    for M in [1;2;4;8;16;32;64] do
-    for G in [500;1000; 5000;10000;50000] do
-        match runAndProcessResult 0 psi M G (sprintf "2\n%d\n%d\n4\n" M G) with
-        |Some(resultString) ->
-            writer.WriteLine(sprintf "%d,%d,%s" M G resultString)
-        |None ->
-            writer.WriteLine("%d,%d,%d,<error>")
+    writer.WriteLine("Implementation,Number of Workers,Chunk Size,Result,Time Elapsed")
+    //Sequential
+    do
+        let result, timeElapsed = runAndProcessResult 0 psi -1 -1 <| sprintf "%d\n%d\n%d\n%d\n" choice -1 -1 1
+        writer.WriteLine(sprintf "%s,%d,%d,%s,%s" " Sequential" -1 -1 result timeElapsed)
+    for G in GList do
+        let result, timeElapsed = runAndProcessResult 0 psi -1 G <| sprintf "%d\n%d\n%d\n%d\n" choice -1 G 3
+        writer.WriteLine(sprintf "%s,%d,%d,%s,%s" "Async Workflows" -1 G result timeElapsed)
+    for i, name in [4, "Tasks"; 5, "Agents"] do
+    for M in MList do
+    for G in GList do
+        let result, timeElapsed = runAndProcessResult 0 psi M G (sprintf "%d\n%d\n%d\n%d\n" choice M G i)
+        writer.WriteLine(sprintf "%s,%d,%d,%s,%s" name M G result timeElapsed)
+
+do
+    run 1
+    run 2
             
 
 
