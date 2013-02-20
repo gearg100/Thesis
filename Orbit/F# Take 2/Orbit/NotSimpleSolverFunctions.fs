@@ -14,7 +14,7 @@ module NotSimpleFunctions =
             use flag = new ManualResetEventSlim(false)
             let foundSoFar = MSet<'T>()
             let workPile = Agent.Start(fun inbox ->
-                let remaining = ref 0
+                let remaining = ref 1
                 let rec loop() = async {
                     let! data = inbox.Receive()
                     let data = data |> Seq.filter (not << contains foundSoFar) |> Array.ofSeq
@@ -67,7 +67,7 @@ module NotSimpleFunctions =
             loop()
         
         let workerPileLogic foundSoFar M G flag workers inbox  =
-            let remaining = ref 0
+            let remaining = ref 1
             let i = ref -1
             let rec loop() = async {
                 let! data = Agent.receive inbox

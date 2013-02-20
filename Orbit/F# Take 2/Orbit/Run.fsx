@@ -56,7 +56,7 @@ let rec runAndProcessResult nOfReruns (psi:ProcessStartInfo) M G input =
     else
         let resultLine =  stdout |> split '\n' |> last
         let (TimedResult(result, timeElapsed)) = resultLine
-        let resStr = sprintf "%d, %d" result timeElapsed
+        let resStr = sprintf "%d,%d" result timeElapsed
         printfn "%s" resultLine
         Some(resStr)
 
@@ -78,9 +78,9 @@ do
     for G in [500;1000; 5000;10000;50000] do
         match runAndProcessResult 0 psi M G (sprintf "1\n%d\n%d\n4\n" M G) with
         |Some(resultString) ->
-            writer.WriteLine(sprintf "(%d, %d): %s" M G resultString)
+            writer.WriteLine(sprintf "%d,%d,%s" M G resultString)
         |None ->
-            writer.WriteLine("(%d, %d, %d): error")
+            writer.WriteLine("%d,%d,%d,<error>")
 do 
     use stream = File.Create(bigintResultPath)
     use writer = new StreamWriter(stream)
@@ -89,9 +89,9 @@ do
     for G in [500;1000; 5000;10000;50000] do
         match runAndProcessResult 0 psi M G (sprintf "2\n%d\n%d\n4\n" M G) with
         |Some(resultString) ->
-            writer.WriteLine(sprintf "(%d, %d): %s" M G resultString)
+            writer.WriteLine(sprintf "%d,%d,%s" M G resultString)
         |None ->
-            writer.WriteLine("(%d, %d, %d): error")
+            writer.WriteLine("%d,%d,%d,<error>")
             
 
 
