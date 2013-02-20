@@ -39,37 +39,38 @@ let psi =
     else
         makePSI path @""
 
-let rec runAndProcessResult nOfReruns (psi:ProcessStartInfo) M G input =
+let rec runAndProcessResult nOfReruns (psi:ProcessStartInfo) (precision, M, G, i as inputParams) =
     printf "Running for input (%d, %d)... " M G
     let stdout, stderr = 
         use proc = Process.Start(psi)
         proc.StandardInput.AutoFlush <- true
-        proc.StandardInput.WriteLine(input+"\n")
+        proc.StandardInput.WriteLine(sprintf "%d\n%d\n%d\n%d\n\n" precision M G i)
         proc.WaitForExit()
         proc.StandardOutput.ReadToEnd().Trim(), proc.StandardError.ReadToEnd().Trim()
     if stderr <> "" then
         if nOfReruns< 5 then 
-            runAndProcessResult (nOfReruns + 1) psi M G input
+            printfn "retry"
+            runAndProcessResult (nOfReruns + 1) psi inputParams
         else
             printfn "error"
-            ("<error>","<error>")
+            sprintf "%d,%d,%s,%s" M G "<error>" "<error>"
     else
         let resultLine =  stdout |> split '\n' |> last
         let (TimedResult(result, timeElapsed)) = resultLine
-        let resStr = sprintf "%s,%s" result timeElapsed
         printfn "%s" resultLine
-        result, timeElapsed
+        sprintf "%d,%d,%s,%s" M G result timeElapsed
 
 Console.Write("nOfTimes each test will run: ")
 let times = int <| Console.ReadLine()
 
 let int64ResultPath =
-    directory + @"/timesInt64_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
+    directory + @"/timesInt64_" 
+        + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
 let bigintResultPath =
-    directory + @"/timesBigInt_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
+    directory + @"/timesBigInt_" 
+        + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
 Console.WriteLine("int64 results file: " + int64ResultPath)
-Console.WriteLine("bigInt results file: " + bigintResultPath)
-Console.ReadLine()
+Console.WriteLine("bigint results file: " + bigintResultPath)
 
 let MList = [1;2;4;8;16;32;64]
 let GList = [500;1000; 5000;10000;50000]
@@ -78,19 +79,19 @@ let run choice =
     use stream = File.Create(if choice = 1 then int64ResultPath else bigintResultPath)
     use writer = new StreamWriter(stream)
     writer.AutoFlush <- true
-    writer.WriteLine("Implementation,Number of Workers,Chunk Size,Result,Time Elapsed")
+    fprintfn writer "Implementation,Number of Workers,Chunk Size,Result,Time Elapsed"
     //Sequential
     do
-        let result, timeElapsed = runAndProcessResult 0 psi -1 -1 <| sprintf "%d\n%d\n%d\n%d\n" choice -1 -1 1
-        writer.WriteLine(sprintf "%s,%d,%d,%s,%s" " Sequential" -1 -1 result timeElapsed)
+        fprintfn writer "%s,%s" "Sequential" 
+            <| runAndProcessResult 0 psi (choice, 1, 1, 1)
     for G in GList do
-        let result, timeElapsed = runAndProcessResult 0 psi -1 G <| sprintf "%d\n%d\n%d\n%d\n" choice -1 G 3
-        writer.WriteLine(sprintf "%s,%d,%d,%s,%s" "Async Workflows" -1 G result timeElapsed)
-    for i, name in [4, "Tasks"; 5, "Agents"] do
+        fprintfn writer "%s,%s" "Async Workflows" 
+            <| runAndProcessResult 0 psi (choice, 1, G, 3)
+    for i, implementation in [4, "Tasks"; 5, "Agents"] do
     for M in MList do
     for G in GList do
-        let result, timeElapsed = runAndProcessResult 0 psi M G (sprintf "%d\n%d\n%d\n%d\n" choice M G i)
-        writer.WriteLine(sprintf "%s,%d,%d,%s,%s" name M G result timeElapsed)
+        fprintfn writer "%s,%s" implementation 
+            <| runAndProcessResult 0 psi (choice, M, G, i)
 
 do
     run 1
