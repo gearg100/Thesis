@@ -53,21 +53,20 @@ let path = Path.Combine(directory,"bin","Release","Orbit.exe")
 
 let processors = Environment.ProcessorCount
 
-let runAndProcessResult (processorsToUse, precision, M, G, i) =
+let runAndProcessResult implementationName (processorsToUse, precision, M, G, i) =
     let affinity = makeAffinityNum processors processorsToUse
     let affinityString = toHexString affinity
     let psi = 
-        makePSI <|||
+        makePSI <||
             if Environment.OSVersion.Platform = PlatformID.Unix then
                 @"taskset", 
-                (sprintf """%s mono --gc=sgen --runtime=v4.0 "%s" """ affinityString path),
-                processorsToUse
+                sprintf """%s mono --gc=sgen --runtime=v4.0 "%s" """ affinityString path
             else 
                 path,
-                "",
-                processorsToUse
+                ""
+            <| processorsToUse
     let rec runAndProcessResultHelper nOfReruns =
-        printf "Running for input (%d, %d)...\t" M G
+        printf "Running '%s' for input (%d, %d, %d)...\t\t" implementationName M G processorsToUse
         let stdout, stderr = 
             use proc = Process.Start(psi)
             proc.ProcessorAffinity <- nativeint affinity
@@ -81,12 +80,12 @@ let runAndProcessResult (processorsToUse, precision, M, G, i) =
                 runAndProcessResultHelper (nOfReruns + 1)
             else
                 printfn "error"
-                sprintf "%d,%d,%s,%s" M G "<error>" "<error>"
+                sprintf "%s,%d,%d,%d,%s,%s" implementationName M G processorsToUse "<error>" "<error>"
         else
             let resultLine =  stdout |> split '\n' |> last
             let (TimedResult(result, timeElapsed)) = resultLine
             printfn "%s" resultLine
-            sprintf "%d,%d,%s,%s" M G result timeElapsed
+            sprintf "%s,%d,%d,%d,%s,%s" implementationName M G processorsToUse result timeElapsed
     runAndProcessResultHelper 0
 
 Console.Write("nOfTimes each test will run: ")
@@ -117,21 +116,21 @@ let run choice =
     use stream = File.Create(if choice = 1 then int64ResultPath else bigintResultPath)
     use writer = new StreamWriter(stream)
     writer.AutoFlush <- true
-    fprintfn writer "Implementation,Number of Workers,Chunk Size,Result,Time Elapsed"
+    fprintfn writer "Implementation,Number of Workers,Processors to Use,Chunk Size,Result,Time Elapsed"
     //Sequential
-    do
-        fprintfn writer "%s,%s" "Sequential" 
-            <| runAndProcessResult (1 , choice, 1, 1, 1)
-    for G in GList do
-        for n in processorsToUseList do
-        fprintfn writer "%s,%s" "Async Workflows" 
-            <| runAndProcessResult (n, choice, 1, G, 3)
+    for n in processorsToUseList do
+        fprintfn writer "%s"  
+            <| runAndProcessResult "Sequential" (n, choice, 1, 1, 1)
+    for n in processorsToUseList do
+        for G in GList do
+        fprintfn writer "%s"  
+            <| runAndProcessResult "Async Workflows" (n, choice, 1, G, 3)
     for i, implementation in [4, "Tasks"; 5, "Agents"] do
     for n in processorsToUseList do
-    for M in MList do
-    for G in GList do
-        fprintfn writer "%s,%s" implementation 
-            <| runAndProcessResult (n, choice, M, G, i)
+        for M in MList do
+        for G in GList do
+        fprintfn writer "%s"  
+            <| runAndProcessResult implementation (n, choice, M, G, i)
 
 do
     run 1
