@@ -16,7 +16,7 @@ let (|TimedResult|) line =
         System.Text.RegularExpressions.Regex.Match(
             line, @"Result: (\d+) - Time Elapsed: (\d+) ms"
         )
-    m.Groups.[1].Value, m.Groups.[2].Value
+    m.Groups.[1].Value, int64 m.Groups.[2].Value
 
 let powerOf2 n = 
     System.Math.Log(float n, 2.0)
@@ -53,6 +53,9 @@ let path = Path.Combine(directory,"bin","Release","Orbit.exe")
 
 let processors = Environment.ProcessorCount
 
+Console.Write("nOfTimes each test will run: ")
+let times = int <| Console.ReadLine()
+
 let runAndProcessResult implementationName (processorsToUse, precision, M, G, i) =
     let affinity = makeAffinityNum processors processorsToUse
     let affinityString = toHexString affinity
@@ -65,31 +68,31 @@ let runAndProcessResult implementationName (processorsToUse, precision, M, G, i)
                 path,
                 ""
             <| processorsToUse
-    let rec runAndProcessResultHelper nOfReruns =
-        printf "Running '%s' for input (%d, %d, %d)...\t\t" implementationName M G processorsToUse
+    let rec runAndProcessResultHelper nOfReruns nOfErrors r t =        
         let stdout, stderr = 
-            use proc = Process.Start(psi)
-            proc.ProcessorAffinity <- nativeint affinity
+            use proc = Process.Start(psi, ProcessorAffinity = nativeint affinity)
             proc.StandardInput.AutoFlush <- true
             proc.StandardInput.WriteLine(sprintf "%d\n%d\n%d\n%d\n\n" precision M G i)
             proc.WaitForExit()
             proc.StandardOutput.ReadToEnd().Trim(), proc.StandardError.ReadToEnd().Trim()
         if stderr <> "" then
-            if nOfReruns< 5 then 
+            if nOfErrors < 5 then 
                 printfn "retry"
-                runAndProcessResultHelper (nOfReruns + 1)
+                runAndProcessResultHelper nOfReruns (nOfErrors + 1) r t
             else
                 printfn "error"
-                sprintf "%s,%d,%d,%d,%s,%s" implementationName M G processorsToUse "<error>" "<error>"
-        else
+                "<error>", [ -1L ]
+        elif nOfReruns < times then
             let resultLine =  stdout |> split '\n' |> last
             let (TimedResult(result, timeElapsed)) = resultLine
-            printfn "%s" resultLine
-            sprintf "%s,%d,%d,%d,%s,%s" implementationName M G processorsToUse result timeElapsed
-    runAndProcessResultHelper 0
-
-Console.Write("nOfTimes each test will run: ")
-let times = int <| Console.ReadLine()
+            printf "@ %s" resultLine
+            runAndProcessResultHelper (nOfReruns + 1) nOfErrors result (timeElapsed :: t)
+        else 
+            printfn ""
+            r, t
+    printf "Running '%s' for input (%d, %d, %d)..." implementationName M G processorsToUse
+    let (result, timesElapsed) = runAndProcessResultHelper 0 0 "" []
+    sprintf "%s,%d,%d,%d,%s,%d" implementationName M G processorsToUse result (timesElapsed |> Seq.averageBy float |> round |> int64)
 
 let int64ResultPath = 
     Path.Combine(
@@ -127,7 +130,8 @@ let run choice =
             <| runAndProcessResult "Async Workflows" (n, choice, 1, G, 3)
     for i, implementation in [4, "Tasks"; 5, "Agents"] do
     for n in processorsToUseList do
-        for M in MList do
+    for M in MList do 
+    if M <= n then
         for G in GList do
         fprintfn writer "%s"  
             <| runAndProcessResult implementation (n, choice, M, G, i)
