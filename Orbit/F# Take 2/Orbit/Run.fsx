@@ -119,7 +119,7 @@ let run choice =
     use stream = File.Create(if choice = 1 then int64ResultPath else bigintResultPath)
     use writer = new StreamWriter(stream)
     writer.AutoFlush <- true
-    fprintfn writer "Implementation,Number of Workers,Processors to Use,Chunk Size,Result,Time Elapsed"
+    fprintfn writer "Implementation,Number of Workers,Chunk Size,Processors to Use,Result,Time Elapsed"
     //Sequential
     for n in processorsToUseList do
         fprintfn writer "%s"  
