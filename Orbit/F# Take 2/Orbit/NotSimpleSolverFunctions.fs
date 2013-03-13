@@ -17,23 +17,22 @@ module NotSimpleFunctions =
                 let remaining = ref 1
                 let rec loop() = async {
                     let! data = inbox.Receive()
-                    let data = data |> Seq.filter (not << contains foundSoFar) |> Array.ofSeq
+                    let data = data |> Array.filter (not << contains foundSoFar)
                     unionWith foundSoFar data
                     let jobs = ref -1
                     for chunk in data |> Seq.distinct |> Seq.chunked G do
-                        Task.Factory.StartNew(
-                            (fun () ->
+                        Task.Factory.StartNew
+                            ((fun _ ->
                                 Seq.collect generators chunk
                                 |> Array.ofSeq
                                 |> inbox.Post),
                             CancellationToken.None,
                             TaskCreationOptions.HideScheduler ||| TaskCreationOptions.DenyChildAttach,
-                            scheduler
-                        )
+                            scheduler)
                         |> ignore
                         incr jobs
                     remaining := !remaining + !jobs
-                    if (!remaining = 0 && !jobs = -1) then
+                    if (!remaining = 0 && !jobs = -1 && inbox.CurrentQueueLength = 0) then
                         ManualResetEventSlim.set flag
                     else 
                         return! loop()
@@ -71,10 +70,7 @@ module NotSimpleFunctions =
             let i = ref -1
             let rec loop() = async {
                 let! data = Agent.receive inbox
-                let data = 
-                    data 
-                    |> Seq.filter (not << contains foundSoFar) 
-                    |> Array.ofSeq
+                let data = data |> Array.filter (not << contains foundSoFar)
                 unionWith foundSoFar data
                 let jobs = ref -1
                 for chunk in data |> Seq.distinct |> Seq.chunked G do
@@ -82,7 +78,7 @@ module NotSimpleFunctions =
                     ||> Agent.post
                     incr jobs
                 remaining := !remaining + !jobs
-                if (!remaining = 0 && !jobs = -1) then
+                if (!remaining = 0 && !jobs = -1 && inbox.CurrentQueueLength = 0) then
                     ManualResetEventSlim.set flag
                     Array.iter (fun worker -> Agent.post worker Stop) workers 
                 else 

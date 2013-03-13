@@ -50,7 +50,7 @@ module SimpleFunctions =
             let remaining = ref 1
             let rec loop() = async {
                 let! data = Agent.receive inbox
-                let data = data |> Seq.filter (not << contains foundSoFar) |> Seq.toArray
+                let data = data |> Array.filter (not << contains foundSoFar)
                 unionWith foundSoFar data
                 let jobs = ref -1
                 for chunk in data |> Seq.distinct |> Seq.chunked 3000 do
@@ -61,7 +61,7 @@ module SimpleFunctions =
                     }
                     incr jobs
                 remaining := !remaining + !jobs
-                if (!remaining = 0 && !jobs = -1) then
+                if (!remaining = 0 && !jobs = -1 && inbox.CurrentQueueLength = 0) then
                     ManualResetEventSlim.set flag |> ignore
                 else
                     return! loop()
