@@ -20,7 +20,7 @@ module NotSimpleFunctions =
                     let data = data |> Array.filter (not << contains foundSoFar)
                     unionWith foundSoFar data
                     let jobs = ref -1
-                    for chunk in data |> Seq.distinct |> Seq.chunked G do
+                    for chunk in data |> Seq.distinct |> Seq.chunked G |> Seq.toArray do
                         Task.Factory.StartNew
                             ((fun _ ->
                                 Seq.collect generators chunk
@@ -32,7 +32,7 @@ module NotSimpleFunctions =
                         |> ignore
                         incr jobs
                     remaining := !remaining + !jobs
-                    if (!remaining = 0 && !jobs = -1 && inbox.CurrentQueueLength = 0) then
+                    if (!remaining = 0 && !jobs = -1) then
                         ManualResetEventSlim.set flag
                     else 
                         return! loop()
@@ -73,12 +73,12 @@ module NotSimpleFunctions =
                 let data = data |> Array.filter (not << contains foundSoFar)
                 unionWith foundSoFar data
                 let jobs = ref -1
-                for chunk in data |> Seq.distinct |> Seq.chunked G do
+                for chunk in data |> Seq.distinct |> Seq.chunked G |> Seq.toArray do
                     (Array.get workers <| (incSafe i)%M, Job chunk) 
                     ||> Agent.post
                     incr jobs
                 remaining := !remaining + !jobs
-                if (!remaining = 0 && !jobs = -1 && inbox.CurrentQueueLength = 0) then
+                if (!remaining = 0 && !jobs = -1) then
                     ManualResetEventSlim.set flag
                     Array.iter (fun worker -> Agent.post worker Stop) workers 
                 else 

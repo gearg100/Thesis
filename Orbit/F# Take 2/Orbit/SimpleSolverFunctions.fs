@@ -31,7 +31,8 @@ module SimpleFunctions =
             else
                 let nCurrent = 
                     current  
-                        .AsParallel().WithDegreeOfParallelism(M)                          
+                        .AsParallel()
+                        .WithDegreeOfParallelism(M)
                         .SelectMany(generators)
                         .Where(not << foundSoFar.Contains)
                         .Distinct()
@@ -53,7 +54,7 @@ module SimpleFunctions =
                 let data = data |> Array.filter (not << contains foundSoFar)
                 unionWith foundSoFar data
                 let jobs = ref -1
-                for chunk in data |> Seq.distinct |> Seq.chunked 3000 do
+                for chunk in data |> Seq.distinct |> Seq.chunked G |> Seq.toArray do
                     Async.Start <| async {
                         Seq.collect generators chunk
                         |> Array.ofSeq
@@ -61,7 +62,7 @@ module SimpleFunctions =
                     }
                     incr jobs
                 remaining := !remaining + !jobs
-                if (!remaining = 0 && !jobs = -1 && inbox.CurrentQueueLength = 0) then
+                if (!remaining = 0 && !jobs = -1) then
                     ManualResetEventSlim.set flag |> ignore
                 else
                     return! loop()

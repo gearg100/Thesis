@@ -32,7 +32,7 @@ module Seq =
                 let b = s.MoveNext()
                 if b then 
                     current <-
-                        let lst = List<_>()
+                        let lst = List<_>(chunkSize)
                         lst.Add s.Current
                         let mutable i = chunkSize - 1
                         while i > 0 && s.MoveNext() do
