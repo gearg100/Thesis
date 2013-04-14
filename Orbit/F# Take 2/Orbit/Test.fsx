@@ -14,7 +14,7 @@ let inline run i =
 
 for i = 1 to 20 do
 for Pair(j, name, solve) in solvers 8 5000 do
-    if j > 2 then
+    if j > 1 then
         let transformer (i:int) = int64 i
-        let res, timeElapsed = solve <| Fibonaccis.definition transformer
-        printfn "Result Length for %s: %d" name <| Seq.length res
+        let res, timeElapsed = solve <| Simple.definition transformer
+        printfn "Result Length for %s: %d | %d ms" name (Seq.length res) timeElapsed

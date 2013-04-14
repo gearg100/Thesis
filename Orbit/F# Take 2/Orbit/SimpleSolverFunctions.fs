@@ -14,16 +14,14 @@ module SimpleFunctions =
                 let nCurrent = 
                     current 
                     |> Seq.collect generators 
-                    |> Seq.filter (not << foundSoFar.Contains) 
-                    |> Seq.distinct
+                    |> Seq.filter foundSoFar.Add
                     |> Seq.toArray
-                foundSoFar.UnionWith nCurrent
                 helper nCurrent
         let timer = Stopwatch.StartNew()
         helper <| Seq.toArray initData, timer.ElapsedMilliseconds
 
     open System.Linq
-    let solveWithPLinq<'T when 'T: equality> M { initData = initData; generators = generators } =
+    let solveWithPLinq<'T when 'T: equality> { initData = initData; generators = generators } =
         let foundSoFar = MSet<'T>(initData)
         let rec helper current =
             if Seq.isEmpty (current:seq<'T>) then
@@ -32,7 +30,6 @@ module SimpleFunctions =
                 let nCurrent = 
                     current  
                         .AsParallel()
-                        .WithDegreeOfParallelism(M)
                         .SelectMany(generators)
                         .Where(not << foundSoFar.Contains)
                         .Distinct()
@@ -40,6 +37,23 @@ module SimpleFunctions =
                 foundSoFar.UnionWith nCurrent
                 helper nCurrent
         let timer = Stopwatch.StartNew()
+        helper initData, timer.ElapsedMilliseconds
+
+    let solveWithPLinq2<'T when 'T: equality> M { initData = initData; generators = generators } =
+        let foundSoFar = System.Collections.Concurrent.ConcurrentDictionary<'T,obj>(M, 5000000)
+        let rec helper current =
+            if Seq.isEmpty (current:seq<'T>) then
+                foundSoFar.Keys :> seq<_>
+            else
+                let nCurrent = 
+                    current  
+                        .AsParallel()
+                        .SelectMany(generators)
+                        .Where(fun x -> foundSoFar.TryAdd(x, null))
+                        .ToList()
+                helper nCurrent
+        let timer = Stopwatch.StartNew()
+        for x in initData do foundSoFar.TryAdd(x, null) |> ignore
         helper initData, timer.ElapsedMilliseconds
 
     open Helpers
@@ -54,9 +68,10 @@ module SimpleFunctions =
                 let data = data |> Array.filter (not << contains foundSoFar)
                 unionWith foundSoFar data
                 let jobs = ref -1
-                for chunk in data |> Seq.distinct |> Seq.chunked G |> Seq.toArray do
+                for chunk in data |> Seq.chunked_opt_2 G do
                     Async.Start <| async {
                         Seq.collect generators chunk
+                        |> Seq.distinct
                         |> Array.ofSeq
                         |> Agent.post inbox
                     }
@@ -71,4 +86,5 @@ module SimpleFunctions =
         let timer = Stopwatch.StartNew()
         Agent.post workPile (Array.ofSeq initData)
         ManualResetEventSlim.wait flag
+        timer.Stop()
         foundSoFar :> seq<_>, timer.ElapsedMilliseconds

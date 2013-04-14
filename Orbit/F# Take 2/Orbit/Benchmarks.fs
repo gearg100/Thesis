@@ -29,3 +29,23 @@ module Fibonaccis =
         let integers = List.map transform [1;3;5;6;8;56;235;543]
 
         { generators = funcs; initData = integers}
+
+module Simple =
+    let inline definition transform =
+        let n = transform 5000000            
+        {
+            initData = List.map transform [1;2;3;4;5;6;7;8;9]
+            generators = fun x ->
+                upcast [
+                    (x * transform 2) % n
+                    (x * transform 3) % n
+                    (x * transform 5) % n
+                    (x * transform 7) % n
+                    (x * transform 11) % n
+                    (x * transform 13) % n
+                    (x * transform 17) % n
+                    (x * transform 23) % n
+                    (x * transform 29) % n
+                    (x * transform 31) % n
+                ]
+        }

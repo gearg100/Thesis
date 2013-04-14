@@ -22,8 +22,6 @@ let incSafe (i:int ref):int = Interlocked.Increment i
 
 [<RequireQualifiedAccess>]
 module Seq =
-    open System.Linq
-    open System.Collections.Generic 
     type internal ChunkedEnumerator<'a>(inSeq:seq<'a>,chunkSize:int) =
         let mutable s = inSeq.GetEnumerator()
         let mutable current = Unchecked.defaultof<_>
@@ -32,7 +30,7 @@ module Seq =
                 let b = s.MoveNext()
                 if b then 
                     current <-
-                        let lst = List<_>(chunkSize)
+                        let lst = ResizeArray<_>(chunkSize)
                         lst.Add s.Current
                         let mutable i = chunkSize - 1
                         while i > 0 && s.MoveNext() do
@@ -41,7 +39,7 @@ module Seq =
                         lst
                 else
                     current <- Unchecked.defaultof<_>
-                b                    
+                b
             member x.Current = (x :> IEnumerator<_>).Current :> obj
             member x.Reset() = 
                 s <- inSeq.GetEnumerator()
@@ -52,11 +50,72 @@ module Seq =
             member x.Dispose() =
                 s <- Unchecked.defaultof<_>
                 current <- Unchecked.defaultof<_>
+    type internal SpaceOptimizedChunkedEnumerator<'a>(inArray:array<'a>,chunkSize:int) =
+        let mutable index = 0
+        let mutable current = Unchecked.defaultof<_>
+        interface System.Collections.IEnumerator with
+            member x.MoveNext() = 
+                if index < inArray.Length then
+                    current <- 
+                        let idx = index
+                        if idx + chunkSize < inArray.Length then
+                            seq { for i = idx to idx + chunkSize - 1 do yield inArray.[i] }
+                        else 
+                            seq { for i = idx to inArray.Length - 1 do yield inArray.[i] }
+                    index <- index + chunkSize
+                    true
+                else
+                    current <- Unchecked.defaultof<_>
+                    false
+            member x.Current = (x :> IEnumerator<_>).Current :> obj
+            member x.Reset() = 
+                index <- 0
+                current <- Unchecked.defaultof<_>
+        interface System.Collections.Generic.IEnumerator<seq<'a>> with
+            member x.Current = current :> _
+        interface System.IDisposable with
+            member x.Dispose() =
+                index <- 0
+                current <- Unchecked.defaultof<_>
     let chunked (chunkSize:int) sq :seq<_> = {
         new IEnumerable<seq<'a>> with
             member x.GetEnumerator() = new ChunkedEnumerator<'a>(sq, chunkSize) :> System.Collections.Generic.IEnumerator<_>
             member x.GetEnumerator() = new ChunkedEnumerator<'a>(sq, chunkSize) :> System.Collections.IEnumerator
     }
+    let chunked_opt (chunkSize:int) sq :seq<_> = {
+        new IEnumerable<seq<'a>> with
+            member x.GetEnumerator() = new SpaceOptimizedChunkedEnumerator<'a>(sq, chunkSize) :> System.Collections.Generic.IEnumerator<_>
+            member x.GetEnumerator() = new SpaceOptimizedChunkedEnumerator<'a>(sq, chunkSize) :> System.Collections.IEnumerator
+    }
+    let chunked_opt_2 (chunkSize:int) sq :seq<_> = 
+        let index = ref 0
+        let length = Array.length sq
+        seq {
+            while !index + chunkSize < length do
+                let idx = !index
+                yield seq { for i = idx to idx + chunkSize - 1 do yield sq.[i] }
+                index := !index + chunkSize
+            if !index < length then
+                let idx = !index
+                yield seq { for i = idx to length - 1 do yield sq.[i] }        
+        }
+[<RequireQualifiedAccess>]
+module List =
+    let chunked_withCount (chunkSize:int) sq = 
+        let rec helper list left acc resultAcc count = 
+            if List.isEmpty list then
+                if List.isEmpty acc then
+                    count, resultAcc
+                else
+                    count + 1, acc :: resultAcc
+            elif left = 0 then
+                helper list chunkSize [] (acc::resultAcc) (count + 1)
+            else
+                helper (List.tail list) (left - 1) (List.head list :: acc) resultAcc count
+        helper sq chunkSize [] [] 0
+                    
+       
+           
 
 module CustomTaskSchedulers =
     open System

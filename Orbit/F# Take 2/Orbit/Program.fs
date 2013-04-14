@@ -11,10 +11,12 @@ module Main=
     let solvers M G = 
         dict [ 
             1, ("Sequential", solve)
-            2, ("PLinq", solveWithPLinq M)
+            2, ("PLinq", solveWithPLinq)
+            22, ("PLinq 2", solveWithPLinq2 M)
             3, ("Async Workflows", solveWithAgentAsyncs G)
             4, ("Tasks", solveWithAgentTasks M G)
             5, ("Agents", solveWithAgentWorkers M G)
+            6, ("Concurrent Dictionary", solveWithAgentConcurrentDictionary M G)
         ]
 
     [<EntryPoint>]
@@ -34,9 +36,11 @@ module Main=
         Console.Write("""Choose Implementation from [
     1 -> Sequential, 
     2 -> PLinq, 
-    3 -> Async Workflows(nOfMappers = ProcessorCount), 
+    22 -> PLinq 2, 
+    3 -> Async Workflows(nOfMappers = ProcessorCount),
     4 -> Tasks, 
-    5 -> Agents
+    5 -> Agents,
+    6 -> Concurrent Dictionary
 ]: """  )
         let choice = int <| Console.ReadLine()
         Console.WriteLine() 
@@ -44,12 +48,12 @@ module Main=
         | 1-> 
             let transformer (i:int) = int64 i
             let _, solve = (solvers M G).[choice] 
-            let res, timeElapsed = solve (Fibonaccis.definition transformer)
+            let res, timeElapsed = solve (Simple.definition transformer)
             printfn "Result: %d - Time Elapsed: %d ms" (Seq.length res) timeElapsed
         | 2 ->
             let transformer (i:int) = bigint i
             let _, solve = (solvers M G).[choice] 
-            let res, timeElapsed = solve (Fibonaccis.definition transformer)
+            let res, timeElapsed = solve (Simple.definition transformer)
             printfn "Result: %d - Time Elapsed: %d ms" (Seq.length res) timeElapsed
         | _ ->
             printfn "invalid mode"        

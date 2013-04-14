@@ -20,16 +20,13 @@ module NotSimpleFunctions =
                     let data = data |> Array.filter (not << contains foundSoFar)
                     unionWith foundSoFar data
                     let jobs = ref -1
-                    for chunk in data |> Seq.distinct |> Seq.chunked G |> Seq.toArray do
-                        Task.Factory.StartNew
-                            ((fun _ ->
-                                Seq.collect generators chunk
-                                |> Array.ofSeq
-                                |> inbox.Post),
-                            CancellationToken.None,
-                            TaskCreationOptions.HideScheduler ||| TaskCreationOptions.DenyChildAttach,
-                            scheduler)
-                        |> ignore
+                    for chunk in data |> Seq.chunked_opt_2 G do
+                        Task.Factory.StartNew(fun _ ->
+                            Seq.collect generators chunk
+                            |> Seq.distinct
+                            |> Array.ofSeq
+                            |> inbox.Post
+                        ) |> ignore
                         incr jobs
                     remaining := !remaining + !jobs
                     if (!remaining = 0 && !jobs = -1) then
@@ -44,6 +41,36 @@ module NotSimpleFunctions =
             ManualResetEventSlim.wait flag
             foundSoFar :> seq<_>, timer.ElapsedMilliseconds
 
+    let solveWithAgentConcurrentDictionary<'T when 'T: equality> M G { initData = initData; generators = generators } = 
+        use flag = new ManualResetEventSlim()
+        let foundSoFar = System.Collections.Concurrent.ConcurrentDictionary<'T, obj>(M, 5000000)
+        let workPile = Agent.start <| fun inbox ->
+            let remaining = ref 1
+            let rec loop() = async {
+                let! data = Agent.receive inbox
+                let jobs = ref -1
+                for chunk in data do
+                    Task.Factory.StartNew(fun _ ->
+                        Seq.collect generators chunk
+                        |> Seq.filter (fun x -> foundSoFar.TryAdd(x, null))
+                        |> Seq.chunked G 
+                        |> Seq.toArray
+                        |> Agent.post inbox
+                    ) |> ignore
+                    incr jobs
+                remaining := !remaining + !jobs
+                if (!remaining = 0 && !jobs = -1) then
+                    ManualResetEventSlim.set flag |> ignore
+                else
+                    return! loop()
+            }
+            loop()
+        let timer = Stopwatch.StartNew()
+        Agent.post workPile (initData |> Seq.chunked G |> Seq.toArray)
+        ManualResetEventSlim.wait flag
+        timer.Stop()
+        foundSoFar.Keys :> seq<_>, timer.ElapsedMilliseconds
+
     module private AgentSystem = 
 
         type MapperMessage<'T> =
@@ -57,6 +84,7 @@ module NotSimpleFunctions =
                     match msg with
                     |Job chunk ->
                         Seq.collect generators chunk
+                        |> Seq.distinct
                         |> Array.ofSeq
                         |> Agent.post inbox
                         return! loop()
@@ -73,7 +101,7 @@ module NotSimpleFunctions =
                 let data = data |> Array.filter (not << contains foundSoFar)
                 unionWith foundSoFar data
                 let jobs = ref -1
-                for chunk in data |> Seq.distinct |> Seq.chunked G |> Seq.toArray do
+                for chunk in data |> Seq.chunked G |> Seq.toArray do
                     (Array.get workers <| (incSafe i)%M, Job chunk) 
                     ||> Agent.post
                     incr jobs
