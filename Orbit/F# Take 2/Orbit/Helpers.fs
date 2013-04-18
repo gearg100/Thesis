@@ -1,5 +1,25 @@
 ﻿module Helpers
 
+type MutableSet<'T> = System.Collections.Generic.HashSet<'T> 
+
+[<RequireQualifiedAccess>]
+module MutableSet = 
+    let unionWith (set:MutableSet<'T>) seq = set.UnionWith seq
+    let add (set:MutableSet<'T>) elem = set.Add elem
+    let contains (set:MutableSet<'T>) elem = set.Contains elem
+    let empty<'T> = MutableSet<'T>()
+    let ofSeq (seq:seq<'T>) = MutableSet<'T>(seq)
+
+type ConcurrentSet<'T> = System.Collections.Concurrent.ConcurrentDictionary<'T, obj>
+[<RequireQualifiedAccess>]
+module ConcurrentSet =
+    let add (set:ConcurrentSet<'T>) elem = set.TryAdd (elem, null)
+    let contains (set:ConcurrentSet<'T>) elem = set.ContainsKey elem
+    let empty<'T> = ConcurrentSet<'T,obj>()
+    let create (concurrencyLevel:int) (capacity:int) = ConcurrentSet(concurrencyLevel, capacity)
+    let ofSeq (seq:seq<'T>) = 
+        ConcurrentSet(seq |> Seq.map (fun x -> System.Collections.Generic.KeyValuePair(x,null)))
+
 type Agent<'T> = MailboxProcessor<'T>
 module Agent = 
     let start func = Agent.Start func
@@ -11,14 +31,20 @@ module AsyncReplyChannel =
     let reply (replyChannel:AsyncReplyChannel<_>) data = replyChannel.Reply data
 
 open System.Threading
-open System.Collections.Generic
 module ManualResetEventSlim =
     let set (flag: ManualResetEventSlim) = flag.Set()
     let wait (flag: ManualResetEventSlim) = flag.Wait()
 
+type IndexedSeq<'T> = System.Collections.Generic.IList<'T>
+type HashSet<'T> = System.Collections.Generic.HashSet<'T>
+type IEnumerator<'T> = System.Collections.Generic.IEnumerator<'T>
+
 let contains (collection: System.Collections.Generic.ICollection<_>) data = collection.Contains data
-let unionWith (set:HashSet<_>) seq = set.UnionWith seq
 let incSafe (i:int ref):int = Interlocked.Increment i
+
+[<RequireQualifiedAccess>]
+module IndexedSeq =
+    let length (x:#IndexedSeq<'T>) = x.Count
 
 [<RequireQualifiedAccess>]
 module Seq =
@@ -50,18 +76,18 @@ module Seq =
             member x.Dispose() =
                 s <- Unchecked.defaultof<_>
                 current <- Unchecked.defaultof<_>
-    type internal SpaceOptimizedChunkedEnumerator<'a>(inArray:array<'a>,chunkSize:int) =
+    type internal SpaceOptimizedChunkedEnumerator<'a>(inArray:IndexedSeq<'a>,chunkSize:int) =
         let mutable index = 0
         let mutable current = Unchecked.defaultof<_>
         interface System.Collections.IEnumerator with
             member x.MoveNext() = 
-                if index < inArray.Length then
+                if index < IndexedSeq.length inArray then
                     current <- 
                         let idx = index
-                        if idx + chunkSize < inArray.Length then
+                        if idx + chunkSize < IndexedSeq.length inArray then
                             seq { for i = idx to idx + chunkSize - 1 do yield inArray.[i] }
                         else 
-                            seq { for i = idx to inArray.Length - 1 do yield inArray.[i] }
+                            seq { for i = idx to IndexedSeq.length inArray - 1 do yield inArray.[i] }
                     index <- index + chunkSize
                     true
                 else
@@ -78,18 +104,18 @@ module Seq =
                 index <- 0
                 current <- Unchecked.defaultof<_>
     let chunked (chunkSize:int) sq :seq<_> = {
-        new IEnumerable<seq<'a>> with
+        new seq<seq<'a>> with
             member x.GetEnumerator() = new ChunkedEnumerator<'a>(sq, chunkSize) :> System.Collections.Generic.IEnumerator<_>
             member x.GetEnumerator() = new ChunkedEnumerator<'a>(sq, chunkSize) :> System.Collections.IEnumerator
     }
-    let chunked_opt (chunkSize:int) sq :seq<_> = {
-        new IEnumerable<seq<'a>> with
+    let chunked_opt (chunkSize:int) (sq:#IndexedSeq<_>) :seq<_> = {
+        new seq<seq<'a>> with
             member x.GetEnumerator() = new SpaceOptimizedChunkedEnumerator<'a>(sq, chunkSize) :> System.Collections.Generic.IEnumerator<_>
             member x.GetEnumerator() = new SpaceOptimizedChunkedEnumerator<'a>(sq, chunkSize) :> System.Collections.IEnumerator
     }
-    let chunked_opt_2 (chunkSize:int) sq :seq<_> = 
+    let chunked_opt_2 (chunkSize:int) (sq:#IndexedSeq<_>) :seq<_> = 
         let index = ref 0
-        let length = Array.length sq
+        let length = IndexedSeq.length sq
         seq {
             while !index + chunkSize < length do
                 let idx = !index

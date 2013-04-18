@@ -31,21 +31,15 @@ module Fibonaccis =
         { generators = funcs; initData = integers}
 
 module Simple =
-    let inline definition transform =
-        let n = transform 5000000            
+    let inline definition transform l d f =
+        let rec delay i x = if i = 0 then x else delay (i - 1) x
+        let list = 
+            [2;3;4;5;6;11;13;17;23;29;31]
+            |> Seq.take f 
+            |> Seq.map transform
+            |> Seq.map (fun i x -> delay d <| (x * i) % transform l)
+            |> Seq.toList
         {
             initData = List.map transform [1;2;3;4;5;6;7;8;9]
-            generators = fun x ->
-                upcast [
-                    (x * transform 2) % n
-                    (x * transform 3) % n
-                    (x * transform 5) % n
-                    (x * transform 7) % n
-                    (x * transform 11) % n
-                    (x * transform 13) % n
-                    (x * transform 17) % n
-                    (x * transform 23) % n
-                    (x * transform 29) % n
-                    (x * transform 31) % n
-                ]
+            generators = fun x -> Seq.map (fun f -> f x) list
         }

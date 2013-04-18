@@ -72,7 +72,7 @@ let runAndProcessResult implementationName (processorsToUse, precision, M, G, i)
         let stdout, stderr = 
             use proc = Process.Start(psi, ProcessorAffinity = nativeint affinity)
             proc.StandardInput.AutoFlush <- true
-            proc.StandardInput.WriteLine(sprintf "%d\n%d\n%d\n%d\n\n" precision M G i)
+            proc.StandardInput.WriteLine(sprintf "%d\n%d\n%d\n%d\n\n\n" precision M G i)
             proc.WaitForExit()
             proc.StandardOutput.ReadToEnd().Trim(), proc.StandardError.ReadToEnd().Trim()
         if stderr <> "" then
@@ -125,10 +125,17 @@ let run choice =
         fprintfn writer "%s"  
             <| runAndProcessResult "Sequential" (n, choice, 1, 1, 1)
     for n in processorsToUseList do
+        fprintfn writer "%s"  
+            <| runAndProcessResult "PLinq" (n, choice, 1, -1, 2)
+    for n in processorsToUseList do
+        fprintfn writer "%s"  
+            <| runAndProcessResult "PLinq 2" (n, choice, 1, -1, 22)
+    for i, implementation in [3, "Async Workflows"; 4, "Tasks"] do
+    for n in processorsToUseList do
         for G in GList do
         fprintfn writer "%s"  
-            <| runAndProcessResult "Async Workflows" (n, choice, 1, G, 3)
-    for i, implementation in [4, "Tasks"; 5, "Agents"] do
+            <| runAndProcessResult implementation (n, choice, 1, G, i)
+    for i, implementation in [ 5, "Agents"; 6, "ConcurrentSet"] do
     for n in processorsToUseList do
     for M in MList do 
     if M <= n then

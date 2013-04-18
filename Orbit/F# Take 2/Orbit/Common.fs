@@ -1,9 +1,11 @@
 ﻿namespace Orbit
 
-type MSet<'T> = System.Collections.Generic.HashSet<'T>
-
 type ProblemDef<'T> = { 
     generators: 'T -> 'T seq 
     initData: 'T seq
 }
+
+type Message<'T> = 
+| Start of array<'T>*AsyncReplyChannel<seq<'T>>
+| Result of array<'T>
 
