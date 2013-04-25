@@ -6,7 +6,7 @@ module NotSimpleFunctions =
     open Orbit
     open Helpers
 
-    let agentLogic chunkAndSend G inbox = 
+    let agentLogic_ chunkAndSend G inbox = 
         let foundSoFar = MutableSet<'T>()
         let rec start() = 
             async {
@@ -33,9 +33,33 @@ module NotSimpleFunctions =
         }
         start()
 
+    let agentLogic chunkAndSend G inbox = 
+        let foundSoFar = MutableSet<'T>()
+        let rec start() = 
+            async {
+                let! Start(initData, replyChannel) = Agent.receive inbox
+                MutableSet.unionWith foundSoFar initData
+                let jobs = chunkAndSend initData (Seq.chunked G) inbox
+                return! loop replyChannel jobs
+            }
+        and loop replyChannel remaining = async {
+            try
+                let! Result data = inbox.Receive()
+                let data = data |> Array.filter (not << contains foundSoFar)
+                MutableSet.unionWith foundSoFar data
+                let jobs = chunkAndSend data (Seq.chunked_opt_2 G) inbox
+                if remaining > 1 || jobs > 0 then
+                    return! loop replyChannel (remaining + jobs - 1)
+                else
+                    AsyncReplyChannel.reply replyChannel <| upcast foundSoFar               
+            with _ ->
+                return! loop replyChannel remaining
+        }
+        start()
+
     let solveWithAgentAsyncs<'T when 'T: equality> G 
-        { initData = initData; generators = generators } = 
-        let chunkAndSend (data:seq<'T>) chunker inbox = 
+        { initData = (initData:seq<'T>); generators = generators } = 
+        let chunkAndSend data chunker inbox = 
             let mutable jobs = 0
             for chunk in data |> chunker do
                 Async.Start <| async {
@@ -53,8 +77,8 @@ module NotSimpleFunctions =
         } |> Async.RunSynchronously
 
     let solveWithAgentTasks<'T when 'T: equality> G 
-        { initData = initData; generators = generators } =
-        let chunkAndSend (data:seq<'T>) chunker inbox = 
+        { initData = (initData:seq<'T>); generators = generators } =
+        let chunkAndSend data chunker inbox = 
             let mutable jobs = 0
             for chunk in data |> chunker do
                 System.Threading.Tasks.Task.Factory.StartNew(fun _ ->
@@ -72,8 +96,8 @@ module NotSimpleFunctions =
         } |> Async.RunSynchronously
    
     let solveWithAgentWorkers<'T when 'T:equality> M G 
-        { initData = initData; generators = generators } =
-        let chunkAndSend workers i (data:seq<'T>) chunker inbox =
+        { initData = (initData:seq<'T>); generators = generators } =
+        let chunkAndSend workers i data chunker inbox =
             let mutable jobs = 0
             for chunk in data |> chunker do
                 (Array.get workers <| (incSafe i)%M, chunk) 

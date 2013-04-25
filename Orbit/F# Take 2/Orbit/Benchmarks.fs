@@ -32,12 +32,16 @@ module Fibonaccis =
 
 module Simple =
     let inline definition transform l d f =
-        let rec delay i x = if i = 0 then x else delay (i - 1) x
+        // i is nanoseconds
+        let inline delay i =
+            let rec helper j acc = 
+                if j = 0 then acc - j else helper (j - 1) (acc+1)
+            helper i 0
         let list = 
             [2;3;4;5;6;11;13;17;23;29;31]
             |> Seq.take f 
             |> Seq.map transform
-            |> Seq.map (fun i x -> delay d <| (x * i) % transform l)
+            |> Seq.map (fun i x -> transform (delay d) + abs ((x * i) % transform l))
             |> Seq.toList
         {
             initData = List.map transform [1;2;3;4;5;6;7;8;9]

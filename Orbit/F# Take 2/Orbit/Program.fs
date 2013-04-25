@@ -51,7 +51,7 @@ module Main=
                 |> Array.map(fun x -> x.Trim())
                 |> fun ([|l;d;f|]) -> (Int32.Parse l, Int32.Parse d, Int32.Parse f)
             with _ -> 
-                100000, 20000, 10
+                200000, 10000, 10
         Console.WriteLine() 
         match mode with
         | 1-> 

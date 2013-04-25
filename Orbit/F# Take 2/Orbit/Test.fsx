@@ -14,8 +14,8 @@ let inline run i =
 
 do
     for i = 1 to 10 do
-    for Pair(j, name, solve) in solvers 8 200 do
-        if j > 1 then
+    for Pair(j, name, solve) in solvers 8 10 do
+        //if j > 1 then
             let transformer (i:int) = int64 i
             printf "%s: " name
             let res, timeElapsed = solve <| Simple.definition transformer 200000 10000 8
@@ -28,3 +28,13 @@ let l1, t1 =
 let l2, t2 = 
     let s, t =  Orbit.Solver.NotSimpleFunctions.solveWithAgentConcurrentDictionary 8 200 def
     Seq.length s, t
+
+let inline delay i =
+    let rec helper j acc = 
+        if j = 0 then acc - j else helper (j - 1) (acc+1)
+    helper i 0
+
+let t = System.DateTime.Now
+delay 10000
+let t' = System.DateTime.Now
+(t'-t).Ticks
