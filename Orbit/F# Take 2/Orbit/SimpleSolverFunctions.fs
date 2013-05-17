@@ -33,6 +33,7 @@ module SimpleFunctions =
                         .AsParallel()                       
                         .SelectMany(generators)
                         .Where(not << MutableSet.contains foundSoFar)
+                        .Distinct()
                         .ToList()
                 MutableSet.unionWith foundSoFar nCurrent
                 helper nCurrent
