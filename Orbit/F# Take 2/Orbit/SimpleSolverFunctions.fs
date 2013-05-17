@@ -33,8 +33,7 @@ module SimpleFunctions =
                         .AsParallel()                       
                         .SelectMany(generators)
                         .Where(not << MutableSet.contains foundSoFar)
-                        .Distinct()
-                    |> Seq.toArray
+                        .ToList()
                 MutableSet.unionWith foundSoFar nCurrent
                 helper nCurrent
         let timer = Stopwatch.StartNew()
