@@ -124,9 +124,9 @@ let run choice =
     for n in processorsToUseList do
         fprintfn writer "%s"  
             <| runAndProcessResult "Sequential" (n, choice, 1, 1, 1)
-    for n in processorsToUseList do
-        fprintfn writer "%s"  
-            <| runAndProcessResult "PLinq" (n, choice, 1, -1, 2)
+//    for n in processorsToUseList do
+//        fprintfn writer "%s"  
+//            <| runAndProcessResult "PLinq" (n, choice, 1, -1, 2)
     for n in processorsToUseList do
         fprintfn writer "%s"  
             <| runAndProcessResult "PLinq 2" (n, choice, 1, -1, 22)
