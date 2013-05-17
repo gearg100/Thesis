@@ -76,12 +76,34 @@ module NotSimpleFunctions =
             return result, timer.ElapsedMilliseconds
         } |> Async.RunSynchronously
 
+    type Parallel = System.Threading.Tasks.Parallel
+
+    let solveWithAgentParFor<'T when 'T: equality> G 
+        { initData = (initData:seq<'T>); generators = generators } =
+        let chunkAndSend data chunker inbox = 
+            let mutable jobs = 0
+            for chunk in data |> chunker do
+                Parallel.Invoke(fun () ->
+                    Seq.collect generators chunk |> Seq.distinct
+                    |> Array.ofSeq
+                    |> Result |> Agent.post inbox 
+                )
+                jobs <- jobs + 1
+            jobs
+        let workPile = Agent.start <| agentLogic chunkAndSend G
+        async {
+            let timer = Stopwatch.StartNew()
+            let! result = Agent.postAndAsyncReply workPile (fun channel -> Start(Array.ofSeq initData, channel))
+            return result, timer.ElapsedMilliseconds
+        } |> Async.RunSynchronously
+
+    type Task = System.Threading.Tasks.Task
     let solveWithAgentTasks<'T when 'T: equality> G 
         { initData = (initData:seq<'T>); generators = generators } =
         let chunkAndSend data chunker inbox = 
             let mutable jobs = 0
             for chunk in data |> chunker do
-                System.Threading.Tasks.Task.Factory.StartNew(fun _ ->
+                Task.Factory.StartNew(fun _ ->
                     Seq.collect generators chunk |> Seq.distinct
                     |> Array.ofSeq
                     |> Result |> Agent.post inbox 
