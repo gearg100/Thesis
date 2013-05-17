@@ -14,7 +14,8 @@ module Main=
             2, ("PLinq", solveWithPLinq)
             22, ("PLinq 2", solveWithPLinq2 M)
             3, ("Async Workflows", solveWithAgentAsyncs G)
-            4, ("Tasks", solveWithAgentTasks G)
+            4, ("TPL - Tasks", solveWithAgentTasks G)
+            44, ("TPL - Parallel.Invoke", solveWithAgentParFor G)
             5, ("Agents", solveWithAgentWorkers M G)
             6, ("Concurrent Dictionary", solveWithAgentConcurrentDictionary M G)
         ]

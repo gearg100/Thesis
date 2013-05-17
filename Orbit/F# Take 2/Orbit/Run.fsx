@@ -130,7 +130,7 @@ let run choice =
     for n in processorsToUseList do
         fprintfn writer "%s"  
             <| runAndProcessResult "PLinq 2" (n, choice, 1, -1, 22)
-    for i, implementation in [3, "Async Workflows"; 4, "Tasks"] do
+    for i, implementation in [3, "Async Workflows"; 4, "TPL - Tasks"; 44, "TPL - Parallel.Invoke"] do
     for n in processorsToUseList do
         for G in GList do
         fprintfn writer "%s"  
