@@ -35,7 +35,7 @@ module Main=
             if flag then number else 3000
         Console.Write("""Choose Implementation from [
     1 -> Sequential, 
-    2 -> PLinq, 
+    2 -> PLinq, //Does not work with Mono thanks to buggy ParallelEnumerable.Distinct()
     22 -> PLinq 2, 
     3 -> Async Workflows(nOfMappers = ProcessorCount),
     4 -> Tasks, 
