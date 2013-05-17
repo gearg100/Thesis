@@ -30,18 +30,18 @@ module SimpleFunctions =
             else
                 let nCurrent = 
                     current  
-                        .AsParallel()
+                        .AsParallel()                       
                         .SelectMany(generators)
                         .Where(not << MutableSet.contains foundSoFar)
-                        .Distinct()
                         .ToList()
+                        .Distinct()
                 MutableSet.unionWith foundSoFar nCurrent
                 helper nCurrent
         let timer = Stopwatch.StartNew()
         helper initData, timer.ElapsedMilliseconds
 
     let solveWithPLinq2<'T when 'T: equality> M { initData = initData; generators = generators } =
-        let foundSoFar = ConcurrentSet<'T,obj>(M, 5000000)
+        let foundSoFar = ConcurrentSet<'T,obj>(M, 1000000)
         let rec helper current =
             if Seq.isEmpty (current:seq<'T>) then
                 foundSoFar.Keys :> seq<_>
