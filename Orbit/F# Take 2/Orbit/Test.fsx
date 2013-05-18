@@ -13,7 +13,7 @@ let inline run i =
     printfn "Result Length for %s: %d" name <| Seq.length res
 
 do
-    for i = 1 to 10 do
+//    for i = 1 to 10 do
     for Pair(j, name, solve) in solvers 8 10 do
         //if j > 1 then
             let transformer (i:int) = int64 i

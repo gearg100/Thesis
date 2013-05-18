@@ -40,8 +40,9 @@ module SimpleFunctions =
         let timer = Stopwatch.StartNew()
         helper initData, timer.ElapsedMilliseconds
 
+    type ParallelExecutionMode = System.Linq.ParallelExecutionMode
     let solveWithPLinq2<'T when 'T: equality> M { initData = initData; generators = generators } =
-        let foundSoFar = ConcurrentSet<'T,obj>(M, 1000000)
+        let foundSoFar = ConcurrentSet.create M 1000000
         let rec helper current =
             if Seq.isEmpty (current:seq<'T>) then
                 foundSoFar.Keys :> seq<_>
@@ -54,5 +55,24 @@ module SimpleFunctions =
                         .ToList()
                 helper nCurrent
         let timer = Stopwatch.StartNew()
-        for x in initData do foundSoFar.TryAdd(x, null) |> ignore
+        for x in initData do ConcurrentSet.add foundSoFar x |> ignore
+        helper initData, timer.ElapsedMilliseconds
+
+    type Parallel = System.Threading.Tasks.Parallel
+    let solveWithParallelForEach<'T when 'T: equality> M { initData = initData; generators = generators } =
+        let foundSoFar = ConcurrentSet.create M 1000000
+        let rec helper current =
+            if Seq.isEmpty (current:seq<'T>) then
+                foundSoFar.Keys :> seq<_>
+            else
+                let res = System.Collections.Concurrent.ConcurrentBag<'T>()
+                Parallel.ForEach(current, fun element ->
+                    element
+                    |> generators
+                    |> Seq.filter (ConcurrentSet.add foundSoFar)
+                    |> Seq.iter res.Add
+                ) |> ignore
+                helper res
+        let timer = Stopwatch.StartNew()
+        for x in initData do ConcurrentSet.add foundSoFar x |> ignore
         helper initData, timer.ElapsedMilliseconds

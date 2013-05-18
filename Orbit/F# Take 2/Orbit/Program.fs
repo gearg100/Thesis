@@ -11,13 +11,13 @@ module Main=
     let solvers M G = 
         dict [ 
             1, ("Sequential", solve)
-            2, ("PLinq", solveWithPLinq)
-            22, ("PLinq 2", solveWithPLinq2 M)
-            3, ("Async Workflows", solveWithAgentAsyncs G)
-            4, ("TPL - Tasks", solveWithAgentTasks G)
-            44, ("TPL - Parallel.Invoke", solveWithAgentParFor G)
-            5, ("Agents", solveWithAgentWorkers M G)
-            6, ("Concurrent Dictionary", solveWithAgentConcurrentDictionary M G)
+            2, ("PLinq", solveWithPLinq2 M)
+            21, ("PLinq - Mono Incompatible", solveWithPLinq)
+            3, ("Parallel.ForEach", solveWithParallelForEach M)
+            4, ("Async Workflows", solveWithAgentAsyncs G)
+            5, ("TPL - Tasks", solveWithAgentTasks G)
+            6, ("Agents", solveWithAgentWorkers M G)
+            7, ("Concurrent Dictionary", solveWithAgentConcurrentDictionary M G)
         ]
 
     [<EntryPoint>]
@@ -36,23 +36,24 @@ module Main=
             if flag then number else 3000
         Console.Write("""Choose Implementation from [
     1 -> Sequential, 
-    2 -> PLinq, //Does not work with Mono thanks to buggy ParallelEnumerable.Distinct()
-    22 -> PLinq 2, 
-    3 -> Async Workflows(nOfMappers = ProcessorCount),
-    4 -> Tasks, 
-    5 -> Agents,
-    6 -> Concurrent Dictionary
+    2 -> PLinq, 
+    21 -> PLinq //Does not work with Mono thanks to buggy ParallelEnumerable.Distinct(), 
+    3 -> Parallel.ForEach,
+    4 -> Async Workflows,
+    5 -> TPL - Tasks, 
+    6 -> Agents,
+    7 -> Concurrent Dictionary
 ] (default = 1): """  )
         let implementation = try int <| Console.ReadLine() with _ -> 1
 
-        Console.Write("Give me l,d,f (space separated on the same line, f <= 10, default values = 200000,10000,8): ")
+        Console.Write("Give me l,d,f (space separated on the same line, f <= 10, default = 200000 10000 8): ")
         let (l,d,f) = 
             try
                 Console.ReadLine().Split(' ')
                 |> Array.map(fun x -> x.Trim())
                 |> fun ([|l;d;f|]) -> (Int32.Parse l, Int32.Parse d, Int32.Parse f)
             with _ -> 
-                200000, 10000, 10
+                200000, 10000, 8
         Console.WriteLine() 
         match mode with
         | 1-> 
