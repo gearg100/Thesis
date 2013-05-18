@@ -50,6 +50,7 @@ module SimpleFunctions =
                 let nCurrent = 
                     current  
                         .AsParallel()
+                        .WithDegreeOfParallelism(M)
                         .SelectMany(generators)
                         .Where(ConcurrentSet.add foundSoFar)
                         .ToList()

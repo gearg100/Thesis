@@ -43,7 +43,10 @@ let makePSI fileName arguments nOfProcessors=
             RedirectStandardOutput = true,
             RedirectStandardError = true
         )
-    psi.EnvironmentVariables.Add("NUMBER_OF_PROCESSORS", string nOfProcessors)
+    if psi.EnvironmentVariables.ContainsKey("NUMBER_OF_PROCESSORS") then
+        psi.EnvironmentVariables.["NUMBER_OF_PROCESSORS"] <- string nOfProcessors
+    else
+        psi.EnvironmentVariables.Add("NUMBER_OF_PROCESSORS", string nOfProcessors)
     psi
 
 
@@ -56,7 +59,7 @@ let processors = Environment.ProcessorCount
 Console.Write("nOfTimes each test will run: ")
 let times = int <| Console.ReadLine()
 
-let runAndProcessResult implementationName (processorsToUse, precision, M, G, i) =
+let runAndProcessResult implementationName (processorsToUse, precision, M, G, implementation) =
     let affinity = makeAffinityNum processors processorsToUse
     let affinityString = toHexString affinity
     let psi = 
@@ -72,7 +75,7 @@ let runAndProcessResult implementationName (processorsToUse, precision, M, G, i)
         let stdout, stderr = 
             use proc = Process.Start(psi, ProcessorAffinity = nativeint affinity)
             proc.StandardInput.AutoFlush <- true
-            proc.StandardInput.WriteLine(sprintf "%d\n%d\n%d\n%d\n\n\n" precision M G i)
+            proc.StandardInput.WriteLine(sprintf "%d\n%d\n%d\n%d\n\n\n" precision M G implementation)
             proc.WaitForExit()
             proc.StandardOutput.ReadToEnd().Trim(), proc.StandardError.ReadToEnd().Trim()
         if stderr <> "" then
@@ -108,8 +111,8 @@ let bigintResultPath =
 Console.WriteLine("int64 results file: " + int64ResultPath)
 Console.WriteLine("bigint results file: " + bigintResultPath)
 
-let MList = [1;2;4;8;16;32;64]
-let GList = [500;1000; 5000;10000;50000]
+let MList = [1;2;4]//;8;16;32;64] //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+let GList = [1; 10; 100;]// 500;1000;5000;10000;50000] //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 let processorsToUseList = [
     for i = 0 to powerOf2 processors do 
         yield 2.0 ** (float i) |> int
@@ -120,28 +123,29 @@ let run choice =
     use writer = new StreamWriter(stream)
     writer.AutoFlush <- true
     fprintfn writer "Implementation,Number of Workers,Chunk Size,Processors to Use,Result,Time Elapsed"
-    //Sequential
-    for n in processorsToUseList do
-        fprintfn writer "%s"  
-            <| runAndProcessResult "Sequential" (n, choice, 1, 1, 1)
 //    for n in processorsToUseList do
 //        fprintfn writer "%s"  
-//            <| runAndProcessResult "PLinq" (n, choice, 1, -1, 2)
+//            <| runAndProcessResult "Sequential" (n, choice, 1, 1, 1)
     for n in processorsToUseList do
-        fprintfn writer "%s"  
-            <| runAndProcessResult "PLinq 2" (n, choice, 1, -1, 22)
-    for i, implementation in [3, "Async Workflows"; 4, "TPL - Tasks"; 44, "TPL - Parallel.Invoke"] do
-    for n in processorsToUseList do
+        for M in MList do
+            fprintfn writer "%s"  
+                <| runAndProcessResult "PLinq" (n, choice, M, -1, 2)
+//    for n in processorsToUseList do
+//        for M in MList do
+//            fprintfn writer "%s"  
+//                <| runAndProcessResult "Parallel.ForEach" (n, choice, M, -1, 3)
+    for i, implementation in [4, "Async Workflows"; 5, "TPL - Tasks"] do
+        for n in processorsToUseList do
         for G in GList do
         fprintfn writer "%s"  
             <| runAndProcessResult implementation (n, choice, 1, G, i)
-    for i, implementation in [ 5, "Agents"; 6, "ConcurrentSet"] do
-    for n in processorsToUseList do
-    for M in MList do 
-    if M <= n then
-        for G in GList do
-        fprintfn writer "%s"  
-            <| runAndProcessResult implementation (n, choice, M, G, i)
+    for i, implementation in [ 6, "Agents"; 7, "ConcurrentSet"] do
+        for n in processorsToUseList do
+        for M in MList do 
+            if M <= n then
+                for G in GList do
+                fprintfn writer "%s"  
+                    <| runAndProcessResult implementation (n, choice, M, G, i)
 
 do
     run 1
