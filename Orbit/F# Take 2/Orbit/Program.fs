@@ -22,6 +22,8 @@ module Main=
 
     [<EntryPoint>]
     let main argv = 
+        Console.Write("nOfTimes each test will run (default = 10): ")
+        let times = try int <| Console.ReadLine() with _ -> 10
         Console.Write("Choose mode [1 -> int64, 2 -> bigint] (default = int64): ")
         let mode = 
             let flag, number = Console.ReadLine() |> Int32.TryParse
@@ -54,19 +56,20 @@ module Main=
                 |> fun ([|l;d;f|]) -> (Int32.Parse l, Int32.Parse d, Int32.Parse f)
             with _ -> 
                 200000, 10000, 8
-        Console.WriteLine() 
-        match mode with
-        | 1-> 
-            let transformer (i:int) = int64 i
-            let _, solve = (solvers M G).[implementation] 
-            let res, timeElapsed = solve (Simple.definition transformer l d f)
-            printfn "Result: %d - Time Elapsed: %d ms" (Seq.length res) timeElapsed
-        | 2 ->
-            let transformer (i:int) = bigint i
-            let _, solve = (solvers M G).[implementation] 
-            let res, timeElapsed = solve (Simple.definition transformer l d f)
-            printfn "Result: %d - Time Elapsed: %d ms" (Seq.length res) timeElapsed
-        | _ ->
-            printfn "invalid mode"        
-        Console.ReadLine() |> ignore   
+        Console.WriteLine()
+        for i = 1 to times do
+            match mode with
+            | 1-> 
+                let transformer (i:int) = int64 i
+                let _, solve = (solvers M G).[implementation] 
+                let res, timeElapsed = solve (Simple.definition transformer l d f)
+                printfn "Result: %d - Time Elapsed: %d ms" (Seq.length res) timeElapsed
+            | 2 ->
+                let transformer (i:int) = bigint i
+                let _, solve = (solvers M G).[implementation] 
+                let res, timeElapsed = solve (Simple.definition transformer l d f)
+                printfn "Result: %d - Time Elapsed: %d ms" (Seq.length res) timeElapsed
+            | _ ->
+                printfn "invalid mode"        
+            Console.ReadLine() |> ignore   
         0 // return an integer exit code 

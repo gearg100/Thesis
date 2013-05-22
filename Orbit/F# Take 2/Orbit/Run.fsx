@@ -56,8 +56,8 @@ let path = Path.Combine(directory,"bin","Release","Orbit.exe")
 
 let processors = Environment.ProcessorCount
 
-Console.Write("nOfTimes each test will run: ")
-let times = int <| Console.ReadLine()
+Console.Write("nOfTimes each test will run (default = 10): ")
+let times = try int <| Console.ReadLine() with _ -> 10
 
 let runAndProcessResult implementationName (processorsToUse, precision, M, G, implementation) =
     let affinity = makeAffinityNum processors processorsToUse
