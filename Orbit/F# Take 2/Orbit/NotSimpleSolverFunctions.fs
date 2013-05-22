@@ -53,7 +53,8 @@ module NotSimpleFunctions =
             let mutable jobs = 0
             for chunk in data |> chunker do
                 Task.Factory.StartNew(fun _ ->
-                    Seq.collect generators chunk |> Seq.distinct
+                    Seq.collect generators chunk 
+                    |> Seq.distinct
                     |> Array.ofSeq
                     |> Result |> Agent.post inbox 
                 ) |> ignore

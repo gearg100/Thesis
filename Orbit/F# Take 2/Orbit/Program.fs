@@ -30,10 +30,10 @@ module Main=
         let M = 
             let flag, number = Console.ReadLine() |> Int32.TryParse
             if flag then number else Environment.ProcessorCount
-        Console.Write("Give me chunkSize (default = 3000): ")
+        Console.Write("Give me chunkSize (default = 1): ")
         let G = 
             let flag, number = Console.ReadLine() |> Int32.TryParse
-            if flag then number else 3000
+            if flag then number else 1
         Console.Write("""Choose Implementation from [
     1 -> Sequential, 
     2 -> PLinq, 
@@ -43,7 +43,7 @@ module Main=
     5 -> TPL - Tasks, 
     6 -> Agents,
     7 -> Concurrent Dictionary
-] (default = 1): """  )
+] (default = 1): """)
         let implementation = try int <| Console.ReadLine() with _ -> 1
 
         Console.Write("Give me l,d,f (space separated on the same line, f <= 10, default = 200000 10000 8): ")

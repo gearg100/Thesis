@@ -32,11 +32,12 @@ module Fibonaccis =
 
 module Simple =
     let inline definition transform l d f =
-        let inline delay i =
-            let mutable n = i*2
-            for j = 1 to 2*i do
-                n <- n - 1
-            n
+        let delay i = 
+            let mutable n = 0
+            let mutable k = 2*i
+            while n < k do 
+                n <- n + 1; k <- k - 1
+            n - k
         let array = 
             [2;3;4;5;6;11;13;17;23;29;31]
             |> Seq.take f 
