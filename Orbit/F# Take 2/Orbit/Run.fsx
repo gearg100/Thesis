@@ -95,7 +95,7 @@ let runAndProcessResult implementationName (processorsToUse, precision, M, G, im
             pairs |> Seq.head |> fst, pairs |> Seq.map snd
     printfn "Running '%s' for input (%d, %d, %d)..." implementationName M G processorsToUse
     let (result, timesElapsed) = runAndProcessResultHelper 0 "" []
-    sprintf "%s,%d,%d,%d,%s,%d" implementationName M G processorsToUse result (timesElapsed |> Seq.averageBy float |> round |> int64)
+    timesElapsed |> Seq.map (sprintf "%s,%d,%d,%d,%s,%d" implementationName M G processorsToUse result)
 
 let MList = [1;2;4;8;16;32;64] //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 let GList = [1; 10; 100; 500;1000;5000;10000;50000] //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -129,24 +129,24 @@ let run choice =
     writer.AutoFlush <- true
     fprintfn writer "Implementation,Number of Workers,Chunk Size,Processors to Use,Result,Time Elapsed"
     for n in processorsToUseList do
-        fprintfn writer "%s"  
-            <| runAndProcessResult "Sequential" (n, choice, 1, -1, 1)
+        runAndProcessResult "Sequential" (n, choice, 1, -1, 1)
+        |> Seq.iter (fprintfn writer "%s")
     for i, implementation in [2, "PLinq"; 3, "Parallel.ForEach"] do
         for n in processorsToUseList do
         for M in MList |> Seq.filter ((>=) n) do
-            fprintfn writer "%s"  
-                <| runAndProcessResult implementation (n, choice, M, -1, i)
+        runAndProcessResult implementation (n, choice, M, -1, i)
+        |> Seq.iter (fprintfn writer "%s")
     for i, implementation in [4, "Async Workflows"; 5, "TPL - Tasks"] do
         for n in processorsToUseList do
         for G in GList do
-        fprintfn writer "%s"  
-            <| runAndProcessResult implementation (n, choice, 1, G, i)
+        runAndProcessResult implementation (n, choice, 1, G, i)
+        |> Seq.iter (fprintfn writer "%s")
     for i, implementation in [ 6, "Agents"; 7, "ConcurrentSet"] do
         for n in processorsToUseList do
         for M in MList |> Seq.filter ((>=) n) do 
         for G in GList do
-            fprintfn writer "%s"  
-                <| runAndProcessResult implementation (n, choice, M, G, i)
+        runAndProcessResult implementation (n, choice, M, G, i)
+        |> Seq.iter (fprintfn writer "%s") 
 
 do
     run t

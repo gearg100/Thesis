@@ -116,8 +116,7 @@ module NotSimpleFunctions =
         }
         start()
 
-    open System.Threading
-    open System.Threading.Tasks
+    open System.Threading; open System.Threading.Tasks
     let solveWithAgentConcurrentDictionary<'T when 'T: equality> M G 
         { initData = initData; generators = generators } = 
         let chunkAndSend foundSoFar (data:array<'T>) chunker inbox = 
