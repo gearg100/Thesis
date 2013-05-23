@@ -71,5 +71,5 @@ module Main=
                 printfn "Result: %d - Time Elapsed: %d ms" (Seq.length res) timeElapsed
             | _ ->
                 printfn "invalid mode"        
-            Console.ReadLine() |> ignore   
+        Console.ReadLine() |> ignore   
         0 // return an integer exit code 

@@ -9,7 +9,7 @@ module Helpers =
     let inline split (c:char) (str:string) = str.Split(c)
     let inline trim (str:string) = str.Trim()
     let inline startsWith (start:string) (str:string) = str.StartsWith(start)
-    let inline last (ar: _ []) = ar.[ar.Length-1]
+    let inline last n ar = Array.sub ar (Array.length ar - n) n
 
 let (|TimedResult|) line =
     let m = 
@@ -56,8 +56,10 @@ let path = Path.Combine(directory,"bin","Release","Orbit.exe")
 
 let processors = Environment.ProcessorCount
 
-Console.Write("nOfTimes each test will run (default = 10): ")
-let times = try int <| Console.ReadLine() with _ -> 10
+Console.Write("Choose element type [1 -> int64; 2 -> bigint] (default = 1): ")
+let t = try Console.ReadLine() |> int with _ -> 1
+
+let nOfReruns = 10
 
 let runAndProcessResult implementationName (processorsToUse, precision, M, G, implementation) =
     let affinity = makeAffinityNum processors processorsToUse
@@ -71,69 +73,69 @@ let runAndProcessResult implementationName (processorsToUse, precision, M, G, im
                 path,
                 ""
             <| processorsToUse
-    let rec runAndProcessResultHelper nOfReruns nOfErrors r t =        
+    let rec runAndProcessResultHelper nOfErrors r t =        
         let stdout, stderr = 
             use proc = Process.Start(psi, ProcessorAffinity = nativeint affinity)
             proc.StandardInput.AutoFlush <- true
-            proc.StandardInput.WriteLine(sprintf "%d\n%d\n%d\n%d\n\n\n" precision M G implementation)
+            proc.StandardInput.WriteLine(sprintf "%d\n%d\n%d\n%d\n%d\n\n\n" nOfReruns precision M G implementation)
             proc.WaitForExit()
             proc.StandardOutput.ReadToEnd().Trim(), proc.StandardError.ReadToEnd().Trim()
         if stderr <> "" then
+            Console.WriteLine(stderr)
             if nOfErrors < 5 then 
                 printfn "retry"
-                runAndProcessResultHelper nOfReruns (nOfErrors + 1) r t
+                runAndProcessResultHelper (nOfErrors + 1) r t
             else
                 printfn "error"
-                "<error>", [ -1L ]
-        elif nOfReruns < times then
-            let resultLine =  stdout |> split '\n' |> last
-            let (TimedResult(result, timeElapsed)) = resultLine
-            printf "@ %s" resultLine
-            runAndProcessResultHelper (nOfReruns + 1) nOfErrors result (timeElapsed :: t)
-        else 
-            printfn ""
-            r, t
-    printf "Running '%s' for input (%d, %d, %d)..." implementationName M G processorsToUse
-    let (result, timesElapsed) = runAndProcessResultHelper 0 0 "" []
+                "<error>", seq [ -1L ]
+        else
+            let resultLines =  stdout |> split '\n' |> last nOfReruns
+            resultLines |> Seq.iter (Console.Write); Console.WriteLine()
+            let pairs = resultLines |> Seq.map (function TimedResult(result, timeElapsed) -> result, timeElapsed) |> Seq.toArray
+            pairs |> Seq.head |> fst, pairs |> Seq.map snd
+    printf "Running '%s' for input (%d, %d, %d)..." implementationName M G processorsToUse; Console.Out.Flush()
+    let (result, timesElapsed) = runAndProcessResultHelper 0 "" []
     sprintf "%s,%d,%d,%d,%s,%d" implementationName M G processorsToUse result (timesElapsed |> Seq.averageBy float |> round |> int64)
 
-let int64ResultPath = 
-    Path.Combine(
-        directory, 
-        "timesInt64_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
-    )
-let bigintResultPath =
-    Path.Combine(
-        directory,
-        "timesBigInt_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
-    )
-
-Console.WriteLine("int64 results file: " + int64ResultPath)
-Console.WriteLine("bigint results file: " + bigintResultPath)
-
-let MList = [1;2;4]//;8;16;32;64] //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-let GList = [1; 10; 100;]// 500;1000;5000;10000;50000] //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+let MList = [1;2;4;8;16;32;64] //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+let GList = [1; 10; 100; 500;1000;5000;10000;50000] //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 let processorsToUseList = [
     for i = 0 to powerOf2 processors do 
         yield 2.0 ** (float i) |> int
 ]
 
 let run choice =
-    use stream = File.Create(if choice = 1 then int64ResultPath else bigintResultPath)
+    let path = 
+        match choice with
+        | 1 -> 
+            let p = 
+                Path.Combine(
+                    directory, 
+                    "timesInt64_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
+                )
+            Console.WriteLine("int64 results file: " + p)
+            p
+        | 2 ->
+            let p = 
+                Path.Combine(
+                    directory,
+                    "timesBigInt_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".txt"
+                )
+            Console.WriteLine("bigint results file: " + p)
+            p
+        | _ -> failwith "Invalid"
+    use stream = File.Create(path)
     use writer = new StreamWriter(stream)
     writer.AutoFlush <- true
     fprintfn writer "Implementation,Number of Workers,Chunk Size,Processors to Use,Result,Time Elapsed"
-//    for n in processorsToUseList do
-//        fprintfn writer "%s"  
-//            <| runAndProcessResult "Sequential" (n, choice, 1, 1, 1)
     for n in processorsToUseList do
-        for M in MList do
+        fprintfn writer "%s"  
+            <| runAndProcessResult "Sequential" (n, choice, 1, -1, 1)
+    for i, implementation in [2, "PLinq"; 3, "Parallel.ForEach"] do
+        for n in processorsToUseList do
+        for M in MList |> Seq.filter ((>=) n) do
             fprintfn writer "%s"  
-                <| runAndProcessResult "PLinq" (n, choice, M, -1, 2)
-//    for n in processorsToUseList do
-//        for M in MList do
-//            fprintfn writer "%s"  
-//                <| runAndProcessResult "Parallel.ForEach" (n, choice, M, -1, 3)
+                <| runAndProcessResult implementation (n, choice, M, -1, i)
     for i, implementation in [4, "Async Workflows"; 5, "TPL - Tasks"] do
         for n in processorsToUseList do
         for G in GList do
@@ -141,12 +143,10 @@ let run choice =
             <| runAndProcessResult implementation (n, choice, 1, G, i)
     for i, implementation in [ 6, "Agents"; 7, "ConcurrentSet"] do
         for n in processorsToUseList do
-        for M in MList do 
-            if M <= n then
-                for G in GList do
-                fprintfn writer "%s"  
-                    <| runAndProcessResult implementation (n, choice, M, G, i)
+        for M in MList |> Seq.filter ((>=) n) do 
+        for G in GList do
+            fprintfn writer "%s"  
+                <| runAndProcessResult implementation (n, choice, M, G, i)
 
 do
-    run 1
-    run 2
+    run t
