@@ -90,10 +90,10 @@ let runAndProcessResult implementationName (processorsToUse, precision, M, G, im
                 "<error>", seq [ -1L ]
         else
             let resultLines =  stdout |> split '\n' |> last nOfReruns
-            resultLines |> Seq.iter (Console.Write); Console.WriteLine()
+            resultLines |> Seq.iter (Console.WriteLine); Console.WriteLine()
             let pairs = resultLines |> Seq.map (function TimedResult(result, timeElapsed) -> result, timeElapsed) |> Seq.toArray
             pairs |> Seq.head |> fst, pairs |> Seq.map snd
-    printf "Running '%s' for input (%d, %d, %d)..." implementationName M G processorsToUse; Console.Out.Flush()
+    printfn "Running '%s' for input (%d, %d, %d)..." implementationName M G processorsToUse
     let (result, timesElapsed) = runAndProcessResultHelper 0 "" []
     sprintf "%s,%d,%d,%d,%s,%d" implementationName M G processorsToUse result (timesElapsed |> Seq.averageBy float |> round |> int64)
 
