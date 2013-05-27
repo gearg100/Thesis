@@ -9,21 +9,23 @@ object Main extends App {
 
   def run(solve: Definition => (collection.Set[_], Long), problemDef: Definition) {
     val (res, time) = solve(problemDef)
-    println(s"${res.size} in $time ms")
+    println(s"Result: ${res.size} - Time Elapsed: $time ms")
   }
 
   def solvers(sets: util.SetProvider, M: Int, G: Int) = {
     val simple = new solver.Simple(sets)
     val akka = new solver.Akka(sets)
+    val akkaSystem = new solver.AkkaSystem(sets)
     Map(
       (1, ("Sequential with Immutable Set", (x: Definition) => simple.solve(x))),
       (2, ("Sequential with Mutable Set", (x: Definition) => simple.solve2(x))),
-      (3, ("Parallel Collections", (x: Definition) => simple.solveParSeq(x))),
+      (3, ("Parallel Collections", (x: Definition) => simple.solveParSeq(x, M))),
       (4, ("Parallel Collections with Concurrent Map", (x: Definition) => simple.solveParSeqWithConcurrentMap(x))),
-      (5, ("Futures", (x: Definition) => simple.solveFuture(x))),
+      (5, ("Futures", (x: Definition) => simple.solveFuture(x, M, G))),
       (6, ("Akka with Immutable Set", (x: Definition) => akka.solveImmutableSet(x, G))),
       (7, ("Akka with Mutable Set", (x: Definition) => akka.solveMutableSet(x, G))),
-      (8, ("Akka with Concurrent Map", (x: Definition) => akka.solveConcurrentMap(x, G))))
+      (8, ("Akka with Concurrent Map", (x: Definition) => akka.solveConcurrentMap(x, G))),
+      (9, ("Akka System with Actor Workers", (x: Definition) => akkaSystem.solveActorWorkers(x, M, G))))
   }
 
   print("nOfTimes each test will run (default = 10): ")
@@ -34,10 +36,10 @@ object Main extends App {
   val M = Try(readLine().toInt).getOrElse(Runtime.getRuntime().availableProcessors())
   print("Give me chunkSize (default = 1): ")
   val G = Try(readLine().toInt).getOrElse(1)
-  print("Set Implementation [Scala, Java] (default = Scala): ")
+  print("Set Implementation [1 -> Scala, 2 -> Java] (default = 1): ")
   val sets = readLine() match {
-    case "Java" => JavaSets
-    case "Scala" | _ => ScalaSets
+    case "2" => JavaSets
+    case "1" | _ => ScalaSets
   }
   print("""Choose Implementation from [
     1 -> Sequential with Immutable Set, 
@@ -48,6 +50,7 @@ object Main extends App {
     6 -> Akka with Immutable Set,
     7 -> Akka with Mutable Set,
     8 -> Akka with Concurrent Map, 
+    9 -> Akka System with Actor Workers
 ] (default = 1): """)
   val implementation = Try(readLine().toInt).getOrElse(1)
   print("Give me l,d,f (space separated on the same line, f <= 10, default = 200000 10000 8): ")

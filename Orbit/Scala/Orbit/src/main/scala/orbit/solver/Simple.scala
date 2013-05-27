@@ -30,8 +30,11 @@ class Simple(sets: orbit.util.SetProvider) {
     timedRun { simpleLogic(problemDef)(initData, mSet ++ initData) }
   }
 
-  def solveParSeq(problemDef: Definition): (Set[problemDef.T], Long) = {
-    import problemDef._
+  def solveParSeq(problemDef: Definition, M: Int): (Set[problemDef.T], Long) = {
+    import problemDef._, scala.collection.parallel.ForkJoinTaskSupport
+    val initDataPar = initData.par
+    initDataPar.tasksupport =
+      new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(M))
     timedRun { simpleLogic(problemDef)(initData.par, initData.to[Set]) }
   }
 
@@ -48,24 +51,23 @@ class Simple(sets: orbit.util.SetProvider) {
     timedRun { helper(initData.par); results.keySet }
   }
 
-  def solveFuture(problemDef: Definition): (Set[problemDef.T], Long) = {
+  def solveFuture(problemDef: Definition, M: Int, G: Int): (Set[problemDef.T], Long) = {
     import problemDef._
-    import concurrent._, duration.Duration.Inf, ExecutionContext.Implicits.global
-    val G = 20
-    def helper(currentSeq: Seq[T], results: Set[T]): Future[Set[T]] =
-      if (currentSeq.isEmpty) { Future(results) }
+    import concurrent._, duration.Duration.Inf
+    implicit val executionContext =
+      ExecutionContext.fromExecutorService(new scala.concurrent.forkjoin.ForkJoinPool(M))
+    val results = cMap[T]
+    def helper(currentSeq: Seq[T]): Future[Set[T]] =
+      if (currentSeq.isEmpty) { Future(results.keySet) }
       else {
         for {
-          nSeqIterator <- Future.traverse(currentSeq.grouped(G)) { chunk =>
-            Future { chunk.flatMap(generators(_)).filterNot(results.contains) }
+          nSeqIterator <- Future.traverse(currentSeq grouped G) { chunk =>
+            Future { chunk flatMap(generators(_) filter(results.putIfAbsent(_, ()).isEmpty)) }
           }
-          res <- {
-            val nFilteredSet = (Set.empty[T] /: nSeqIterator)(_ ++ _)
-            helper(nFilteredSet.toSeq, results ++ nFilteredSet)
-          }
+          res <- helper(nSeqIterator.flatten.toSeq)
         } yield res
       }
-    timedRun { Await.result(helper(initData, initData.to[Set]), Inf) }
+    timedRun { Await.result(helper(initData), Inf) }
   }
 
 }

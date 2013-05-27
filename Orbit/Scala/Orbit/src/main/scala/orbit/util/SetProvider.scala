@@ -10,9 +10,9 @@ trait SetProvider {
 }
 
 object ScalaSets extends SetProvider {
-  def iSet[A]: i.Set[A] = new i.HashSet[A]
-  def mSet[A]: m.Set[A] = new m.HashSet[A]
-  def cMap[A]: c.Map[A, Unit] = new c.TrieMap[A, Unit]
+  def iSet[A]: i.Set[A] = i.Set[A]()
+  def mSet[A]: m.Set[A] = m.Set[A]()
+  def cMap[A]: c.Map[A, Unit] = c.TrieMap[A, Unit]()
 }
 
 object JavaSets extends SetProvider {

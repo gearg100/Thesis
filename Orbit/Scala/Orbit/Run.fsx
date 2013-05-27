@@ -49,11 +49,10 @@ let makePSI fileName arguments nOfProcessors=
         psi.EnvironmentVariables.Add("NUMBER_OF_PROCESSORS", string nOfProcessors)
     psi
 
-
+let java = @"C:\Program Files\Java\jdk1.7.0_17\bin\java.exe" //To be replaced with java.exe
 let directory = __SOURCE_DIRECTORY__
 
-let path = Path.Combine(directory,"bin","Release","Orbit.exe")
-
+let path = @"target\scala-2.10\orbit.jar"
 let processors = Environment.ProcessorCount
 
 Console.Write("Choose element type [1 -> int64; 2 -> bigint] (default = 1): ")
@@ -68,16 +67,16 @@ let runAndProcessResult implementationName (processorsToUse, precision, M, G, im
         makePSI <||
             if Environment.OSVersion.Platform = PlatformID.Unix then
                 @"taskset", 
-                sprintf """%s mono --gc=sgen --runtime=v4.0 "%s" """ affinityString path
+                sprintf """%s java -jar %s""" affinityString path
             else 
-                path,
-                ""
+                java,
+                sprintf """-Xmx4g -XX:MaxPermSize=256m -jar %s""" path
             <| processorsToUse
     let rec runAndProcessResultHelper nOfErrors r t =        
         let stdout, stderr = 
             use proc = Process.Start(psi, ProcessorAffinity = nativeint affinity)
             proc.StandardInput.AutoFlush <- true
-            proc.StandardInput.WriteLine(sprintf "%d\n%d\n%d\n%d\n%d\n\n\n" nOfReruns precision M G implementation)
+            proc.StandardInput.WriteLine(sprintf "%d\n%d\n%d\n%d\n\n%d\n\n" nOfReruns precision M G implementation)
             proc.WaitForExit()
             proc.StandardOutput.ReadToEnd().Trim(), proc.StandardError.ReadToEnd().Trim()
         if stderr <> "" then
@@ -96,8 +95,8 @@ let runAndProcessResult implementationName (processorsToUse, precision, M, G, im
     runAndProcessResultHelper 0 "" []
     |> Seq.map (fun (result, timeElapsed) -> sprintf "%s,%d,%d,%d,%s,%d" implementationName M G processorsToUse result timeElapsed)
 
-let MList = [1;2;4;8;16;32;64] //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-let GList = [1; 10; 100; 500;1000;5000;10000] //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+let MList = [1;2;4;8;16;32;64]
+let GList = [1; 10; 100; 500;1000;5000;10000]
 let processorsToUseList = [
     for i = 0 to powerOf2 processors do 
         yield 2.0 ** (float i) |> int
@@ -127,25 +126,31 @@ let run choice =
     use writer = new StreamWriter(stream)
     writer.AutoFlush <- true
     fprintfn writer "Implementation,Number of Workers,Chunk Size,Processors to Use,Result,Time Elapsed"
-    for n in processorsToUseList do
-        runAndProcessResult "Sequential" (n, choice, 1, -1, 1)
+    for i, implementation in [1, "Sequential with ImmutableSet"; 2, "Sequential with MutableSet"] do
+        for n in processorsToUseList do
+        runAndProcessResult implementation (n, choice, 1, -1, i)
         |> Seq.iter (fprintfn writer "%s")
-    for i, implementation in [2, "PLinq"; 3, "Parallel.ForEach"] do
+    for i, implementation in [3, "Parallel Collections"; 4, "Parallel Collections with ConcurrentMap"] do
         for n in processorsToUseList do
         for M in MList |> Seq.filter ((>=) n) do
         runAndProcessResult implementation (n, choice, M, -1, i)
         |> Seq.iter (fprintfn writer "%s")
-    for i, implementation in [4, "Async Workflows"; 5, "TPL - Tasks"] do
-        for n in processorsToUseList do
-        for G in GList do
-        runAndProcessResult implementation (n, choice, 1, G, i)
-        |> Seq.iter (fprintfn writer "%s")
-    for i, implementation in [ 6, "Agents"; 7, "ConcurrentSet"] do
+    for i, implementation in [ 5, "Futures with ConcurrentMap" ] do
         for n in processorsToUseList do
         for M in MList |> Seq.filter ((>=) n) do 
         for G in GList do
         runAndProcessResult implementation (n, choice, M, G, i)
-        |> Seq.iter (fprintfn writer "%s") 
+        |> Seq.iter (fprintfn writer "%s")
+    for i, implementation in [6, "Akka with ImmutableSet"; 7, "Akka with MutableSet"; 8, "Akka with ConcurrentMap" ] do
+        for n in processorsToUseList do
+        for G in GList do
+        runAndProcessResult implementation (n, choice, 1, G, i)
+        |> Seq.iter (fprintfn writer "%s")
+    for i, implementation in [9, "Akka System with Actor Workers"] do
+        for n in processorsToUseList do
+        for G in GList do
+        runAndProcessResult implementation (n, choice, 2*n, G, i)
+        |> Seq.iter (fprintfn writer "%s")
 
 do
     run t
