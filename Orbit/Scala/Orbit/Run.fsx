@@ -148,8 +148,9 @@ let run choice =
         |> Seq.iter (fprintfn writer "%s")
     for i, implementation in [9, "Akka System with Actor Workers"] do
         for n in processorsToUseList do
+        for M in MList |> Seq.filter ((>=) n) do 
         for G in GList do
-        runAndProcessResult implementation (n, choice, 2*n, G, i)
+        runAndProcessResult implementation (n, choice, M, G, i)
         |> Seq.iter (fprintfn writer "%s")
 
 do
