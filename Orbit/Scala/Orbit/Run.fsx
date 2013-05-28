@@ -49,10 +49,14 @@ let makePSI fileName arguments nOfProcessors=
         psi.EnvironmentVariables.Add("NUMBER_OF_PROCESSORS", string nOfProcessors)
     psi
 
-let java = @"C:\Program Files\Java\jdk1.7.0_17\bin\java.exe" //To be replaced with java.exe
+let java =
+    if Environment.OSVersion.Platform = PlatformID.Unix then
+        "java"
+    else
+        @"C:\Program Files\Java\jdk1.7.0_17\bin\java.exe" //To be replaced with java.exe
 let directory = __SOURCE_DIRECTORY__
 
-let path = @"target\scala-2.10\orbit.jar"
+let path = Path.Combine("target","scala-2.10","orbit.jar")
 let processors = Environment.ProcessorCount
 
 Console.Write("Choose element type [1 -> int64; 2 -> bigint] (default = 1): ")
