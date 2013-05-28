@@ -71,7 +71,7 @@ let runAndProcessResult implementationName (processorsToUse, precision, M, G, im
         makePSI <||
             if Environment.OSVersion.Platform = PlatformID.Unix then
                 @"taskset", 
-                sprintf """%s java -jar %s""" affinityString path
+                sprintf """%s %s -Xmx4g -XX:MaxPermSize=256m -jar %s""" affinityString java path
             else 
                 java,
                 sprintf """-Xmx4g -XX:MaxPermSize=256m -jar %s""" path
