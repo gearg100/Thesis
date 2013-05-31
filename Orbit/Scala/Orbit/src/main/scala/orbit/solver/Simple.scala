@@ -12,7 +12,7 @@ class Simple(sets: orbit.util.SetProvider) {
       val nFilteredSeq =
         currentSeq
           .flatMap(generators(_))
-          .filterNot(results contains)
+          .filterNot(results.contains)
           .distinct
       if (nFilteredSeq.isEmpty) results
       else helper(nFilteredSeq, results ++ nFilteredSeq)

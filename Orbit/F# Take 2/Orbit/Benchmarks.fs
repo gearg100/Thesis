@@ -39,7 +39,7 @@ module Simple =
                 n <- n + 1; k <- k - 1
             n - k
         let array = 
-            [2;3;4;5;6;11;13;17;23;29;31]
+            [2;3;5;7;11;13;17;23;29;31]
             |> Seq.take f 
             |> Seq.map transform
             |> Seq.map (fun i x -> transform (delay d) + abs ((x * i) % transform l))

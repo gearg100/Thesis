@@ -15,7 +15,7 @@ object D {
 class LongBench(l: Int, d: Int, f: Int) extends Definition {
   type T = Long
   val list =
-    Seq[T](2, 3, 5, 7, 11, 13, 17, 23, 29)
+    Seq[T](2, 3, 5, 7, 11, 13, 17, 23, 29, 31)
       .take(f)
       .map(i => (x: T) => (x * i % l) + D.delay(d))
   def generators(x: T): Seq[T] = list.map(_(x))
@@ -25,7 +25,7 @@ class LongBench(l: Int, d: Int, f: Int) extends Definition {
 class BigIntBench(l: Int, d: Int, f: Int) extends Definition {
   type T = BigInt
   val list =
-    Seq[T](2, 3, 5, 7, 11, 13, 17, 23, 29)
+    Seq[T](2, 3, 5, 7, 11, 13, 17, 23, 29, 31)
       .take(f)
       .map(i => (x: T) => (x * i % l) + D.delay(d))
   def generators(x: T): Seq[T] = list.map(_(x))
@@ -33,11 +33,12 @@ class BigIntBench(l: Int, d: Int, f: Int) extends Definition {
 }
 
 class GenBench[A: Integral](l: Int, d: Int, f: Int) extends Definition {
-  val ev = implicitly[Integral[A]]; import ev._
+  val ev = implicitly[Integral[A]]; import ev._; 
+  import language.implicitConversions
   @inline implicit def int2A(x: Int) = fromInt(x)
   type T = A
   val list =
-    Seq[T](2, 3, 5, 7, 11, 13, 17, 23, 29)
+    Seq[T](2, 3, 5, 7, 11, 13, 17, 23, 29, 31)
       .take(f)
       .map(i => (x: T) => (x * i % l) + D.delay(d))
   def generators(x: T): Seq[T] = list.map(_(x))

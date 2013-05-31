@@ -42,7 +42,7 @@ class AkkaSystem(sets: orbit.util.SetProvider) {
 
       def loop(replyPromise: Promise[Set[T]]): Receive = {
         case Result(data) =>
-          val filteredData = data.filterNot(foundSoFar contains)
+          val filteredData = data.filterNot(foundSoFar.contains)
           foundSoFar ++= filteredData
           val jobs = chunkAndSend(filteredData)
           if (remaining > 1 || jobs > 0)

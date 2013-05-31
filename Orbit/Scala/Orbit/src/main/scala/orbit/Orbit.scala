@@ -6,9 +6,9 @@ import orbit.util.ScalaSets
 import orbit.util.JavaSets
 
 object Main extends App {
-
-  def run(solve: Definition => (collection.Set[_], Long), problemDef: Definition) {
-    val (res, time) = solve(problemDef)
+  import language.existentials
+  def run(body: => (collection.Set[_], Long)) {
+    val (res, time) = body
     println(s"Result: ${res.size} - Time Elapsed: $time ms")
   }
 
@@ -71,7 +71,9 @@ object Main extends App {
 
   val solve = solvers(sets, M, G)(implementation)._2
   for (i <- 1 to times)
-    run(solve, problem)
+    run {
+      solve(problem)
+    }
 
   //  val simple1 = new solver.Simple(orbit.util.ScalaSets)
   //  val simple2 = new solver.Simple(orbit.util.JavaSets)
