@@ -130,9 +130,14 @@ let run choice =
     for n in processorsToUseList do
         runAndProcessResult "Sequential" (n, choice, 1, -1, 1)
         |> Seq.iter (fprintfn writer "%s")
-    for i, implementation in [2, "PLinq"; 3, "Parallel.ForEach"] do
+    for i, implementation in [2, "PLinq"] do
         for n in processorsToUseList do
-        for M in MList |> Seq.filter ((>=) n) do
+        for M in [1;2;4;8;16;32;63] do
+        runAndProcessResult implementation (n, choice, M, -1, i)
+        |> Seq.iter (fprintfn writer "%s")
+    for i, implementation in [3, "Parallel.ForEach"] do
+        for n in processorsToUseList do
+        for M in MList do
         runAndProcessResult implementation (n, choice, M, -1, i)
         |> Seq.iter (fprintfn writer "%s")
     for i, implementation in [4, "Async Workflows"; 5, "TPL - Tasks"] do
@@ -142,7 +147,7 @@ let run choice =
         |> Seq.iter (fprintfn writer "%s")
     for i, implementation in [ 6, "Agents"; 7, "ConcurrentSet"] do
         for n in processorsToUseList do
-        for M in MList |> Seq.filter ((>=) n) do 
+        for M in MList do 
         for G in GList do
         runAndProcessResult implementation (n, choice, M, G, i)
         |> Seq.iter (fprintfn writer "%s") 
