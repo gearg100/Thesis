@@ -34,8 +34,8 @@ object Main extends App {
   val mode = Try(readLine().toInt).getOrElse(1)
   print("Give me nOfMappers (default = ProcessorCount): ")
   val M = Try(readLine().toInt).getOrElse(Runtime.getRuntime().availableProcessors())
-  print("Give me chunkSize (default = 1): ")
-  val G = Try(readLine().toInt).getOrElse(1)
+  print("Give me chunkSize (default = 1000): ")
+  val G = Try(readLine().toInt).getOrElse(1000)
   print("Set Implementation [1 -> Scala, 2 -> Java] (default = 1): ")
   val sets = readLine() match {
     case "2" => JavaSets

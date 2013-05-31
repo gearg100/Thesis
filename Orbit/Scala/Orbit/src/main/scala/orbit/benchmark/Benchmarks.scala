@@ -6,7 +6,7 @@ import scala.annotation.tailrec
 object D {
   def delay(i: Int): Int = {
     var n = 0
-    var k = 2*i
+    var k = 2 * i
     while (k > n) { n += 1; k -= 1 }
     n - k
   }
@@ -33,7 +33,7 @@ class BigIntBench(l: Int, d: Int, f: Int) extends Definition {
 }
 
 class GenBench[A: Integral](l: Int, d: Int, f: Int) extends Definition {
-  val ev = implicitly[Integral[A]]; import ev._; 
+  val ev = implicitly[Integral[A]]; import ev._;
   import language.implicitConversions
   @inline implicit def int2A(x: Int) = fromInt(x)
   type T = A

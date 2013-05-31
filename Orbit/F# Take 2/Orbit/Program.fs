@@ -32,10 +32,10 @@ module Main=
         let M = 
             let flag, number = Console.ReadLine() |> Int32.TryParse
             if flag then number else Environment.ProcessorCount
-        Console.Write("Give me chunkSize (default = 1): ")
+        Console.Write("Give me chunkSize (default = 1000): ")
         let G = 
             let flag, number = Console.ReadLine() |> Int32.TryParse
-            if flag then number else 1
+            if flag then number else 1000
         Console.Write("""Choose Implementation from [
     1 -> Sequential, 
     2 -> PLinq, 
