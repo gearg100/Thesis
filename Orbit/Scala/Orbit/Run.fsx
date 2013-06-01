@@ -136,12 +136,12 @@ let run choice =
         |> Seq.iter (fprintfn writer "%s")
     for i, implementation in [3, "Parallel Collections"; 4, "Parallel Collections with ConcurrentMap"] do
         for n in processorsToUseList do
-        for M in MList |> Seq.filter ((>=) n) do
+        for M in MList do
         runAndProcessResult implementation (n, choice, M, -1, i)
         |> Seq.iter (fprintfn writer "%s")
     for i, implementation in [ 5, "Futures with ConcurrentMap" ] do
         for n in processorsToUseList do
-        for M in MList |> Seq.filter ((>=) n) do 
+        for M in MList do 
         for G in GList do
         runAndProcessResult implementation (n, choice, M, G, i)
         |> Seq.iter (fprintfn writer "%s")
@@ -152,7 +152,7 @@ let run choice =
         |> Seq.iter (fprintfn writer "%s")
     for i, implementation in [9, "Akka System with Actor Workers"] do
         for n in processorsToUseList do
-        for M in MList |> Seq.filter ((>=) n) do 
+        for M in MList do 
         for G in GList do
         runAndProcessResult implementation (n, choice, M, G, i)
         |> Seq.iter (fprintfn writer "%s")
