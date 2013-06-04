@@ -71,7 +71,7 @@ let runAndProcessResult implementationName (processorsToUse, M, G, implementatio
         let stdout, stderr = 
             use proc = Process.Start(psi, ProcessorAffinity = nativeint affinity)
             proc.StandardInput.AutoFlush <- true
-            proc.StandardInput.WriteLine(sprintf "%d\n%d\n%d\n%d\n20000\n10000\n8\n" nOfReruns M G implementation)
+            proc.StandardInput.WriteLine(sprintf "%d\n%d\n%d\n%d\n200000\n500\n8\n" nOfReruns M G implementation)
             proc.WaitForExit()
             proc.StandardOutput.ReadToEnd().Trim(), proc.StandardError.ReadToEnd().Trim()
         if stderr <> "" then
