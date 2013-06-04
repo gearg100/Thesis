@@ -53,7 +53,7 @@ let directory = __SOURCE_DIRECTORY__
 
 let processors = Environment.ProcessorCount
 
-let nOfReruns = 1
+let nOfReruns = 10
 
 let runAndProcessResult implementationName (processorsToUse, M, G, implementation) =
     let affinity = makeAffinityNum processors processorsToUse
@@ -115,7 +115,7 @@ let run() =
     for i, implementation in [2, "Concurrent Tasks with Sequential Ets"; 3, "Concurrent Tasks with Concurrent Ets"] do
         for n in processorsToUseList do
         for G in GList do
-        runAndProcessResult implementation (n, G, -1, i)
+        runAndProcessResult implementation (n, 1, G, i)
         |> Seq.iter (fprintfn writer "%s")
     for i, implementation in [ 4, "Concurrent with Workers and Concurrent Ets" ] do
         for n in processorsToUseList do
