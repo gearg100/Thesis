@@ -177,4 +177,4 @@ pip-log.txt
 *.jar
 
 #Erlang
-#.beam
+*.beam

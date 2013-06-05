@@ -45,7 +45,7 @@ run() ->
   L = toIntegerOrElse(io:get_line("L (default = 200000): "),200000),io:nl(),
   D = toIntegerOrElse(io:get_line("D (default = 10000): "),10000),io:nl(),
   F = toIntegerOrElse(io:get_line("F (default = 8): "),8),io:nl(),
-  io:format("Times = ~p, M = ~p, G = ~p, Implementation = ~p, L = ~p, D = ~p, F = ~p", [Times, M, G, Implementation, L, D, F]),
+  io:format("Schedulers = ~p, Times = ~p, M = ~p, G = ~p, Implementation = ~p, L = ~p, D = ~p, F = ~p", [erlang:system_info(schedulers_online),Times, M, G, Implementation, L, D, F]),
   repeat(fun() ->
     {Res, T} = timedRun(dict:fetch(Implementation, Map), benchmarks:simple(L,D,F)),
     io:format("\nResult: ~p - Time Elapsed: ~p ms",[Res,T]) 
