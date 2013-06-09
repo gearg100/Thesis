@@ -31,24 +31,20 @@ class Simple(sets: orbit.util.SetProvider) {
   }
 
   def solveParSeq(problemDef: Definition, M: Int): (Set[problemDef.T], Long) = {
-    import problemDef._, scala.collection.parallel.ForkJoinTaskSupport
-    val initDataPar = initData.par
-    initDataPar.tasksupport =
-      new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(M))
-    timedRun { simpleLogic(problemDef)(initData.par, initData.to[Set]) }
+    import problemDef._, collection.parallel.ForkJoinTaskSupport, concurrent.forkjoin.ForkJoinPool
+    val initDataPar = initData.par; initDataPar.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(M))
+    timedRun { simpleLogic(problemDef)(initDataPar, initData.to[Set]) }
   }
 
-  def solveParSeqWithConcurrentMap(problemDef: Definition): (Set[problemDef.T], Long) = {
-    import problemDef._
+  def solveParSeqWithConcurrentMap(problemDef: Definition, M: Int): (Set[problemDef.T], Long) = {
+    import problemDef._, collection.parallel.ForkJoinTaskSupport, concurrent.forkjoin.ForkJoinPool
+    val initDataPar = initData.par; initDataPar.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(M))
     val results = cMap[T]
     def helper(currentSeq: GenSeq[T]) {
-      val nFilteredSeq =
-        currentSeq flatMap {
-          generators(_) filter (results.putIfAbsent(_, ()).isEmpty)
-        }
+      val nFilteredSeq = currentSeq flatMap { generators(_) filter (results.putIfAbsent(_, ()).isEmpty) }
       if (!nFilteredSeq.isEmpty) helper(nFilteredSeq)
     }
-    timedRun { helper(initData.par); results.keySet }
+    timedRun { helper(initDataPar); results.keySet }
   }
 
   def solveFuture(problemDef: Definition, M: Int, G: Int): (Set[problemDef.T], Long) = {
@@ -62,7 +58,7 @@ class Simple(sets: orbit.util.SetProvider) {
       else {
         for {
           nSeqIterator <- Future.traverse(currentSeq grouped G) { chunk =>
-            Future { chunk flatMap(generators(_) filter(results.putIfAbsent(_, ()).isEmpty)) }
+            Future { chunk flatMap (generators(_) filter (results.putIfAbsent(_, ()).isEmpty)) }
           }
           res <- helper(nSeqIterator.flatten.toSeq)
         } yield res

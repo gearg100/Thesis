@@ -7,25 +7,26 @@ import orbit.util.JavaSets
 
 object Main extends App {
   import language.existentials
-  def run(body: => (collection.Set[_], Long)) {
+  def run[A](body: => (collection.Set[A], Long)) {
     val (res, time) = body
     println(s"Result: ${res.size} - Time Elapsed: $time ms")
   }
 
-  def solvers(sets: util.SetProvider, M: Int, G: Int) = {
+  def solvers[A](sets: util.SetProvider, M: Int, G: Int) = {
     val simple = new solver.Simple(sets)
     val akka = new solver.Akka(sets)
     val akkaSystem = new solver.AkkaSystem(sets)
+    import collection.Set
     Map(
-      (1, ("Sequential with Immutable Set", (x: Definition) => simple.solve(x))),
-      (2, ("Sequential with Mutable Set", (x: Definition) => simple.solve2(x))),
-      (3, ("Parallel Collections", (x: Definition) => simple.solveParSeq(x, M))),
-      (4, ("Parallel Collections with Concurrent Map", (x: Definition) => simple.solveParSeqWithConcurrentMap(x))),
-      (5, ("Futures", (x: Definition) => simple.solveFuture(x, M, G))),
-      (6, ("Akka with Immutable Set", (x: Definition) => akka.solveImmutableSet(x, G))),
-      (7, ("Akka with Mutable Set", (x: Definition) => akka.solveMutableSet(x, G))),
-      (8, ("Akka with Concurrent Map", (x: Definition) => akka.solveConcurrentMap(x, G))),
-      (9, ("Akka System with Actor Workers", (x: Definition) => akkaSystem.solveActorWorkers(x, M, G))))
+      (1, ("Sequential with Immutable Set", (x: Definition { type T = A }) => simple.solve(x))),
+      (2, ("Sequential with Mutable Set", (x: Definition { type T = A }) => simple.solve2(x))),
+      (3, ("Parallel Collections", (x: Definition { type T = A }) => simple.solveParSeq(x, M))),
+      (4, ("Parallel Collections with Concurrent Map", (x: Definition { type T = A }) => simple.solveParSeqWithConcurrentMap(x, M))),
+      (5, ("Futures", (x: Definition { type T = A }) => simple.solveFuture(x, M, G))),
+      (6, ("Akka with Immutable Set", (x: Definition { type T = A }) => akka.solveImmutableSet(x, G))),
+      (7, ("Akka with Mutable Set", (x: Definition { type T = A }) => akka.solveMutableSet(x, G))),
+      (8, ("Akka with Concurrent Map", (x: Definition { type T = A }) => akka.solveConcurrentMap(x, G))),
+      (9, ("Akka System with Actor Workers", (x: Definition { type T = A }) => akkaSystem.solveActorWorkers(x, M, G))))
   }
 
   print("nOfTimes each test will run (default = 10): ")
@@ -60,7 +61,7 @@ object Main extends App {
 
   println()
 
-  val problem = mode match {
+  val problem: Definition = mode match {
     case 1 =>
       new GenBench[Long](l, d, f)
     case 2 =>
@@ -69,7 +70,7 @@ object Main extends App {
       null
   }
 
-  val solve = solvers(sets, M, G)(implementation)._2
+  val solve = solvers[problem.T](sets, M, G)(implementation)._2
   for (i <- 1 to times)
     run {
       solve(problem)

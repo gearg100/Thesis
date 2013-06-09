@@ -139,12 +139,12 @@ let run choice =
         for M in MList do
         runAndProcessResult implementation (n, choice, M, -1, i)
         |> Seq.iter (fprintfn writer "%s")
-    for i, implementation in [ 5, "Futures with ConcurrentMap" ] do
-        for n in processorsToUseList do
-        for M in MList do 
-        for G in GList do
-        runAndProcessResult implementation (n, choice, M, G, i)
-        |> Seq.iter (fprintfn writer "%s")
+//    for i, implementation in [ 5, "Futures with ConcurrentMap" ] do
+//        for n in processorsToUseList do
+//        for M in MList do 
+//        for G in GList do
+//        runAndProcessResult implementation (n, choice, M, G, i)
+//        |> Seq.iter (fprintfn writer "%s")
     for i, implementation in [6, "Akka with ImmutableSet"; 7, "Akka with MutableSet"; 8, "Akka with ConcurrentMap" ] do
         for n in processorsToUseList do
         for G in GList do
