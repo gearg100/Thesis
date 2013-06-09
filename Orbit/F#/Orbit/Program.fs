@@ -17,6 +17,7 @@ module Main=
             4, ("Async Workflows", solveWithAgentAsyncs G)
             5, ("TPL - Tasks", solveWithAgentTasks G)
             6, ("Agents", solveWithAgentWorkers M G)
+            61, ("Agents With Concurrent Dictionary", solveWithAgentWorkersAndConcurrentSet M G)
             7, ("Concurrent Dictionary", solveWithAgentConcurrentDictionary M G)
         ]
 

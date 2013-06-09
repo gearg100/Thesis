@@ -26,7 +26,8 @@ object Main extends App {
       (6, ("Akka with Immutable Set", (x: Definition { type T = A }) => akka.solveImmutableSet(x, G))),
       (7, ("Akka with Mutable Set", (x: Definition { type T = A }) => akka.solveMutableSet(x, G))),
       (8, ("Akka with Concurrent Map", (x: Definition { type T = A }) => akka.solveConcurrentMap(x, G))),
-      (9, ("Akka System with Actor Workers", (x: Definition { type T = A }) => akkaSystem.solveActorWorkers(x, M, G))))
+      (9, ("Akka System with Actor Workers", (x: Definition { type T = A }) => akkaSystem.solveActorWorkers(x, M, G))),
+      (10, ("Akka System with Actor Workers & Concurrent Map", (x: Definition { type T = A }) => akkaSystem.solveActorWorkersConcurrentMap(x, M, G))))
   }
 
   print("nOfTimes each test will run (default = 10): ")
@@ -51,7 +52,8 @@ object Main extends App {
     6 -> Akka with Immutable Set,
     7 -> Akka with Mutable Set,
     8 -> Akka with Concurrent Map, 
-    9 -> Akka System with Actor Workers
+    9 -> Akka System with Actor Workers,
+    10 -> Akka System with Actor Workers & Concurrent Map
 ] (default = 1): """)
   val implementation = Try(readLine().toInt).getOrElse(1)
   print("Give me l,d,f (space separated on the same line, f <= 10, default = 200000 10000 8): ")

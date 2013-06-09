@@ -16,7 +16,7 @@ module ConcurrentSet =
     let add (set:ConcurrentSet<'T>) elem = set.TryAdd (elem, null)
     let contains (set:ConcurrentSet<'T>) elem = set.ContainsKey elem
     let empty<'T> = ConcurrentSet<'T,obj>()
-    let create (concurrencyLevel:int) (capacity:int) = ConcurrentSet(concurrencyLevel, capacity)
+    let create<'T> (concurrencyLevel:int) (capacity:int) = ConcurrentSet<'T, obj>(concurrencyLevel, capacity)
     let ofSeq (seq:seq<'T>) = 
         ConcurrentSet(seq |> Seq.map (fun x -> System.Collections.Generic.KeyValuePair(x,null)))
 
