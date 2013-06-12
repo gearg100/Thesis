@@ -7,7 +7,7 @@ module NotSimpleFunctions =
     open Helpers
     type Task = System.Threading.Tasks.Task
 
-    let agentLogic chunkAndSend G inbox = 
+    let agentLogicMutableSet chunkAndSend G inbox = 
         let foundSoFar = MutableSet<'T>()
         let rec start() = 
             async {
@@ -28,7 +28,7 @@ module NotSimpleFunctions =
         }
         start()
 
-    let agentLogic2 (foundSoFar:ConcurrentSet<'T>) chunkAndSend M G inbox =       
+    let agentLogicConcurrentSet (foundSoFar:ConcurrentSet<'T>) chunkAndSend M G inbox =       
         let rec start() = 
             async {
                 let! Start(initData, replyChannel) = Agent.receive inbox
@@ -86,7 +86,7 @@ module NotSimpleFunctions =
         let chunkAndSend inbox = 
             let logic = logicWithMutableSet generators inbox
             genericChunkAndSendComputations <| fun chunk -> Async.Start <| async { logic chunk }
-        let workPile = Agent.start <| agentLogic chunkAndSend G
+        let workPile = Agent.start <| agentLogicMutableSet chunkAndSend G
         timedRun workPile initData
 
     let solveWithAgentTasks<'T when 'T: equality> G 
@@ -94,7 +94,7 @@ module NotSimpleFunctions =
         let chunkAndSend inbox = 
             let logic = logicWithMutableSet generators inbox
             genericChunkAndSendComputations <| fun chunk -> Task.Factory.StartNew(fun _ -> logic chunk) |> ignore
-        let workPile = Agent.start <| agentLogic chunkAndSend G
+        let workPile = Agent.start <| agentLogicMutableSet chunkAndSend G
         timedRun workPile initData
    
     let solveWithAgentWorkers<'T when 'T:equality> M G 
@@ -110,7 +110,7 @@ module NotSimpleFunctions =
                 }
                 loop()
             )
-            agentLogic (chunkAndSend workers) G inbox 
+            agentLogicMutableSet (chunkAndSend workers) G inbox 
         timedRun workPile initData   
 
     let solveWithAgentWorkersAndConcurrentSet<'T when 'T:equality> M G 
@@ -128,7 +128,7 @@ module NotSimpleFunctions =
                 }
                 loop()
             )            
-            agentLogic2 foundSoFar (chunkAndSend workers) M G inbox 
+            agentLogicConcurrentSet foundSoFar (chunkAndSend workers) M G inbox 
         timedRun workPile initData
 
     let solveWithAgentConcurrentDictionary<'T when 'T: equality> M G 
@@ -138,5 +138,5 @@ module NotSimpleFunctions =
             genericChunkAndSendComputations <| fun chunk -> Task.Factory.StartNew(fun _ -> logic chunk) |> ignore
         let workPile = Agent.start <| fun inbox ->
             let foundSoFar = ConcurrentSet.create<'T> M 100000
-            agentLogic2 foundSoFar (chunkAndSend foundSoFar) M G inbox
+            agentLogicConcurrentSet foundSoFar (chunkAndSend foundSoFar) M G inbox
         timedRun workPile initData

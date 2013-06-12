@@ -13,9 +13,7 @@ class AkkaSystem(sets: orbit.util.SetProvider) {
 
   def solveActorWorkers(problemDef: Definition, M: Int, G: Int) = {
     import problemDef._
-    case class Job(chunk: Seq[T])
-    case class Result(data: Seq[T])
-    case class Start(data: Seq[T], promise: Promise[Set[T]])
+    val helpers = new OrbitAkkaHelpers[T]; import helpers._
 
     class Worker extends Actor {
       def receive = {
@@ -31,20 +29,12 @@ class AkkaSystem(sets: orbit.util.SetProvider) {
       }
 
       var remaining = 0
-      def chunkAndSend(data: Seq[T]): Int = {
-        var jobs = 0
-        for (chunk <- data.grouped(G)) {
-          workers ! Job(chunk)
-          jobs += 1
-        }
-        jobs
-      }
 
       def loop(replyPromise: Promise[Set[T]]): Receive = {
         case Result(data) =>
           val filteredData = data.filterNot(foundSoFar.contains)
           foundSoFar ++= filteredData
-          val jobs = chunkAndSend(filteredData)
+          val jobs = genericChunkAndSend(filteredData, G, workers)
           if (remaining > 1 || jobs > 0)
             remaining += jobs - 1
           else replyPromise.success(foundSoFar)
@@ -54,7 +44,7 @@ class AkkaSystem(sets: orbit.util.SetProvider) {
         case Start(data, promise) =>
           foundSoFar ++= data
           context.become(loop(promise))
-          val jobs = chunkAndSend(data)
+          val jobs = genericChunkAndSend(data, G, workers)
           remaining += jobs
       }
     }
@@ -71,9 +61,7 @@ class AkkaSystem(sets: orbit.util.SetProvider) {
 
   def solveActorWorkersConcurrentMap(problemDef: Definition, M: Int, G: Int) = {
     import problemDef._
-    case class Job(chunk: Seq[T])
-    case class Result(data: Seq[T])
-    case class Start(data: Seq[T], promise: Promise[Set[T]])
+    val helpers = new OrbitAkkaHelpers[T]; import helpers._
 
     class Worker(map: collection.concurrent.Map[T, Unit]) extends Actor {
       def receive = {
@@ -91,18 +79,10 @@ class AkkaSystem(sets: orbit.util.SetProvider) {
       }
 
       var remaining = 0
-      def chunkAndSend(data: Seq[T]): Int = {
-        var jobs = 0
-        for (chunk <- data.grouped(G)) {
-          workers ! Job(chunk)
-          jobs += 1
-        }
-        jobs
-      }
 
       def loop(replyPromise: Promise[Set[T]]): Receive = {
         case Result(data) =>
-          val jobs = chunkAndSend(data)
+          val jobs = genericChunkAndSend(data, G, workers)
           if (remaining > 1 || jobs > 0)
             remaining += jobs - 1
           else replyPromise.success(foundSoFar.keySet)
@@ -112,7 +92,7 @@ class AkkaSystem(sets: orbit.util.SetProvider) {
         case Start(data, promise) =>
           foundSoFar ++= data.map((_, ()))
           context.become(loop(promise))
-          val jobs = chunkAndSend(data)
+          val jobs = genericChunkAndSend(data, G, workers)
           remaining += jobs
       }
     }
@@ -125,5 +105,20 @@ class AkkaSystem(sets: orbit.util.SetProvider) {
     }
     system.shutdown()
     res
+  }
+
+  class OrbitAkkaHelpers[T] {
+    case class Job(chunk: Seq[T])
+    case class Result(data: Seq[T])
+    case class Start(data: Seq[T], promise: Promise[Set[T]])
+
+    def genericChunkAndSend(data: Seq[T], G: Int, router: ActorRef) = {
+      var jobs = 0
+      for (chunk <- data.grouped(G)) yield {
+        router ! Job(chunk)
+        jobs += 1
+      }
+      jobs
+    }
   }
 }

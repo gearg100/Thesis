@@ -21,8 +21,8 @@ class Akka(sets: orbit.util.SetProvider) {
     def chunkAndSend(data: Seq[T], coordinator: ActorRef): Int = {
       var jobs = 0
       for (chunk <- data.grouped(G)) {
-        import akka.pattern.pipe, concurrent.Future
-        Future { Result(chunk.flatMap(generators(_)).distinct) } pipeTo coordinator
+        import akka.pattern.pipe, concurrent.future
+        future { Result(chunk.flatMap(generators(_)).distinct) } pipeTo coordinator
         jobs += 1
       }
       jobs
