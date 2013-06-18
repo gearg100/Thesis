@@ -1,4 +1,5 @@
 -module(orbit).
+-include("definition.hrl").
 -export([repeat/2, timedRun/3, run/0, main/1]).
 
 % Timed Run

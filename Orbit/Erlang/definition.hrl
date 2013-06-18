@@ -1,0 +1,1 @@
+-record(definition, {generators, init_data}).

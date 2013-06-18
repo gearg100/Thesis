@@ -77,13 +77,4 @@ object Main extends App {
     run {
       solve(problem)
     }
-
-  //  val simple1 = new solver.Simple(orbit.util.ScalaSets)
-  //  val simple2 = new solver.Simple(orbit.util.JavaSets)
-  //  val akka1 = new solver.Akka(orbit.util.ScalaSets)
-  //  val akka2 = new solver.Akka(orbit.util.JavaSets)
-  //
-  //  for (i <- 1 to 10)
-  //    run(x => simple1.solveParSeq(x), new GenBench[Long](200000, 10000, 8))
-  //  run(x => akka1.solveConcurrentMap(x, 1), new GenBench[Long](200000, 10000, 8))
 }

@@ -31,14 +31,18 @@ class Simple(sets: orbit.util.SetProvider) {
   }
 
   def solveParSeq(problemDef: Definition, M: Int): (Set[problemDef.T], Long) = {
-    import problemDef._, collection.parallel.ForkJoinTaskSupport, concurrent.forkjoin.ForkJoinPool
-    val initDataPar = initData.par; initDataPar.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(M))
+    import problemDef._, collection.parallel.ForkJoinTaskSupport
+    import concurrent.forkjoin.ForkJoinPool
+    val initDataPar = initData.par
+    initDataPar.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(M))
     timedRun { simpleLogic(problemDef)(initDataPar, initData.to[Set]) }
   }
 
   def solveParSeqWithConcurrentMap(problemDef: Definition, M: Int): (Set[problemDef.T], Long) = {
-    import problemDef._, collection.parallel.ForkJoinTaskSupport, concurrent.forkjoin.ForkJoinPool
-    val initDataPar = initData.par; initDataPar.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(M))
+    import problemDef._, collection.parallel.ForkJoinTaskSupport
+    import concurrent.forkjoin.ForkJoinPool
+    val initDataPar = initData.par
+    initDataPar.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(M))
     val results = cMap[T]
     def helper(currentSeq: GenSeq[T]) {
       val nFilteredSeq = currentSeq flatMap { generators(_) filter (results.putIfAbsent(_, ()).isEmpty) }

@@ -1,6 +1,6 @@
 ﻿namespace Orbit
 
-type ProblemDef<'T> = { 
+type Definition<'T> = { 
     generators: 'T -> 'T seq 
     initData: 'T seq
 }

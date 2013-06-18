@@ -1,5 +1,7 @@
 -module(benchmarks).
+-include("definition.hrl").
 -export([definition/1,fib/1,foo/2,simple/3, delay/1]).
+
 
 fib_aux(0, _Y, X) -> X;
 fib_aux(N, Y, X) ->
@@ -29,7 +31,7 @@ f5(X) -> fib(p(10,0, s(0,900,999,1000, r(X, 1000))) + p(1,X)).
 
 foo(X, N) -> [r(f1(X), N), r(f2(X), N), r(f3(X), N), r(f4(X), N), r(f5(X), N)].
 
-definition(N) -> { [1,3,5,6,8,56,235,543], fun(X) -> foo(X, N) end }.
+definition(N) -> #definition{ init_data=[1,3,5,6,8,56,235,543], generators = fun(X) -> foo(X, N) end }.
 
 delay(D) -> delay(D, 0, 2*D).
 delay(0, X, Y) -> X - Y;
@@ -40,9 +42,9 @@ simple(L,D,F) ->
         fun(X) -> fun(Y) -> Y * X rem L + delay(D) end end,
         element(1,lists:split(F, [2,3,5,7,11,13,17,23,29,31]))
     ),
-    {
-    	[1,2,3,4,5,6,7,8,9], 
-    	fun(X) -> 
+    #definition{
+    	init_data = [1,2,3,4,5,6,7,8,9], 
+    	generators = fun(X) -> 
             lists:map(fun(Fun) -> Fun(X) end, List)
     	end
     }.

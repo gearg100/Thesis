@@ -1,4 +1,5 @@
 -module(solve).
+-include("definition.hrl").
 -export([solve/1, solve_conc/3, solve_conc_helper/4, solve_conc_helper2/4, solve_conc_helper3/4, solve_conc_with_workers/3, create_workers_under_rooter/2]).
 
 %sequential
@@ -14,13 +15,13 @@ solve_helper(Current, Generators) ->
   end,[],NCurrentDistinct),
   solve_helper(NCurrentFilteredDistinct, Generators).
 
-solve({InitData, Generators}) ->
+solve(#definition { init_data = InitData, generators = Generators}) ->
   ets:new(hashset, [set, named_table, public]),
   Result = solve_helper(InitData, Generators),
   ets:delete(hashset),
   Result.
 
-solve_conc({InitData, Generators}, G, Func) ->
+solve_conc(#definition { init_data = InitData, generators = Generators}, G, Func) ->
   ets:new(hashset, [set, named_table, public, {read_concurrency, true}, {write_concurrency, true}]),
   Master = self(),
   Coordinator = spawn(fun() -> Func(Master, Generators, G, 1) end),
@@ -130,7 +131,7 @@ solve_conc_workers_helper(Master, Workers, G, Remaining) ->
     solve_conc_workers_helper(Master, Workers, G, Remaining + Count - 1) 
   end.
 
-solve_conc_with_workers({InitData, Generators}, M, G) ->
+solve_conc_with_workers(#definition { init_data = InitData, generators = Generators}, M, G) ->
   ets:new(hashset, [set, named_table, public, {read_concurrency, true}, {write_concurrency, true}]),
   Master = self(),
   Coordinator = spawn(fun() -> 

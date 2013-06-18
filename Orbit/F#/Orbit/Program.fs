@@ -68,7 +68,7 @@ module Main=
             | 2 ->
                 let transformer (i:int) = bigint i
                 let _, solve = (solvers M G).[implementation] 
-                let res, timeElapsed = solve (Simple.definition transformer l d f)
+                let res, timeElapsed = solve (Simple.definition transformer l d f)                 
                 printfn "Result: %d - Time Elapsed: %d ms" (Seq.length res) timeElapsed
             | _ ->
                 printfn "invalid mode"        
