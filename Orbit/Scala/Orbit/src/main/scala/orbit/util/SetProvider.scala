@@ -1,6 +1,5 @@
 package orbit.util
 
-import orbit.Definition
 import collection.{ immutable => i, mutable => m, concurrent => c }
 
 trait SetProvider {
