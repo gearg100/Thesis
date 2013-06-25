@@ -13,7 +13,7 @@ module NotSimpleFunctions =
             async {
                 let! Start(initData, replyChannel) = Agent.receive inbox
                 MutableSet.unionWith foundSoFar initData
-                let jobs = chunkAndSend inbox (Seq.chunked G) initData
+                let jobs = chunkAndSend inbox (Seq.chunked_opt_2 G) initData
                 return! loop replyChannel jobs
             }
         and loop replyChannel remaining = async {

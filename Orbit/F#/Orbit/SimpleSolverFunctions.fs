@@ -7,7 +7,7 @@ module SimpleFunctions =
     open Helpers
 
     let solve<'T when 'T: equality> { initData = initData; generators = generators } =
-        let foundSoFar = MutableSet<'T>(initData)
+        let foundSoFar = MutableSet(initData)
         let rec helper current =
             if Seq.isEmpty current then
                 foundSoFar :> seq<'T>
@@ -23,7 +23,7 @@ module SimpleFunctions =
 
     open System.Linq
     let solveWithPLinq<'T when 'T: equality> { initData = initData; generators = generators } =
-        let foundSoFar = MutableSet<'T>(initData)
+        let foundSoFar = MutableSet(initData)
         let rec helper current =
             if Seq.isEmpty (current:seq<'T>) then
                 foundSoFar :> seq<'T>
@@ -67,11 +67,10 @@ module SimpleFunctions =
                 foundSoFar.Keys :> seq<_>
             else
                 let res = System.Collections.Concurrent.ConcurrentBag<'T>()
-                Parallel.ForEach(current, fun element ->
-                    element
-                    |> generators
-                    |> Seq.filter (ConcurrentSet.add foundSoFar)
-                    |> Seq.iter res.Add
+                Parallel.ForEach(current,
+                    generators
+                    >> Seq.filter (ConcurrentSet.add foundSoFar)
+                    >> Seq.iter res.Add
                 ) |> ignore
                 helper res
         let timer = Stopwatch.StartNew()

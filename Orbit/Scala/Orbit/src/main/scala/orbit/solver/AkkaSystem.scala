@@ -58,7 +58,7 @@ class AkkaSystem(sets: orbit.util.SetProvider) {
           remaining += jobs
       }
     }
-    implicit val system = ActorSystem("system")
+    val system = ActorSystem("system")
     val coordinator = system.actorOf(Props(new Coordinator))
     val resultPromise = concurrent.promise[Set[T]]
     val res = timedRun {
@@ -87,7 +87,7 @@ class AkkaSystem(sets: orbit.util.SetProvider) {
     class Coordinator extends Actor {
       val foundSoFar = cMap[T]
       val workers = context actorOf {
-        Props(new Worker(foundSoFar)).withRouter(RoundRobinRouter(nrOfInstances = M))
+        Props(new Worker(foundSoFar)) withRouter RoundRobinRouter(nrOfInstances = M)
       }
 
       var remaining = 0
@@ -111,13 +111,13 @@ class AkkaSystem(sets: orbit.util.SetProvider) {
       def receive = {
         case Start(data, promise) =>
           foundSoFar ++= data.map((_, ()))
-          context.become(loop(promise))
+          context become loop(promise)
           val jobs = chunkAndSend(data)
           remaining += jobs
       }
     }
-    implicit val system = ActorSystem("system")
-    val coordinator = system.actorOf(Props(new Coordinator))
+    val system = ActorSystem("system")
+    val coordinator = system.actorOf(Props[Coordinator])
     val resultPromise = concurrent.promise[Set[T]]
     val res = timedRun {
       coordinator ! Start(initData, resultPromise)

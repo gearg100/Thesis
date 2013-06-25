@@ -7,13 +7,10 @@ solve_helper([], _Generators) ->
   ets:match(hashset, '$1');
 solve_helper(Current, Generators) ->
   NCurrent = lists:flatmap(Generators, Current),
-  NCurrentDistinct = lists:usort(NCurrent),
-  NCurrentFilteredDistinct = lists:foldl(fun(Elem,Acc)->
-      case ets:insert_new(hashset, {Elem}) of
-          false -> Acc; true -> [Elem|Acc]
-      end
-  end,[],NCurrentDistinct),
-  solve_helper(NCurrentFilteredDistinct, Generators).
+  NCurrentFiltered = lists:filter(
+    fun(Elem)-> ets:insert_new(hashset, {Elem}) end,
+    NCurrent),
+  solve_helper(NCurrentFiltered, Generators).
 
 solve(#definition { init_data = InitData, generators = Generators}) ->
   ets:new(hashset, [set, named_table, public]),
@@ -36,11 +33,9 @@ solve_conc_helper(Master, _Generators, _G, 0) ->
   Master ! finish;
 solve_conc_helper(Master, Generators, G, Remaining) ->
   receive Current ->
-    FilteredCurrent = lists:foldl(fun(Elem,Acc)->
-      case ets:insert_new(hashset, {Elem}) of
-        false -> Acc; true -> [Elem|Acc]
-      end
-    end,[],Current),
+    FilteredCurrent = lists:filter(
+      fun(Elem)-> ets:insert_new(hashset, {Elem}) end,
+      Current),
     {Count, Chunks} = split:split(G, FilteredCurrent),
     Coordinator = self(),
     lists:foreach(fun(Chunk) -> 
@@ -57,11 +52,9 @@ solve_conc_helper2(Master, _Generators, _G, 0) ->
   Master ! finish;
 solve_conc_helper2(Master, Generators, G, Remaining) ->
   receive Current ->
-    FilteredCurrent = lists:foldl(fun(Elem,Acc)->
-      case ets:insert_new(hashset, {Elem}) of
-        false -> Acc; true -> [Elem|Acc]
-      end
-    end,[],Current),
+    FilteredCurrent = lists:filter(
+      fun(Elem)-> ets:insert_new(hashset, {Elem}) end,
+      Current),
     Coordinator = self(),
     Count = split:split2(G, FilteredCurrent, fun(Chunk) -> 
       spawn(fun()->
