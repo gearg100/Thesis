@@ -116,6 +116,7 @@ class AkkaSystem(sets: orbit.util.SetProvider) {
           remaining += jobs
       }
     }
+
     val system = ActorSystem("system")
     val coordinator = system.actorOf(Props[Coordinator])
     val resultPromise = concurrent.promise[Set[T]]

@@ -72,29 +72,27 @@ solve_conc_helper3(Master, Generators, G, Remaining) ->
   receive Current ->
     Coordinator = self(),
     Count = split:split2(G, Current,fun(Chunk) -> 
-      spawn(fun()->
-        NCurrent = lists:flatmap(
-          fun(C) -> 
-            R = Generators(C), 
-            lists:filter(fun(X) -> ets:insert_new(hashset, {X}) end, R)
-          end, Chunk
-        ),
-        Coordinator ! NCurrent
-      end)
+      spawn(fun() -> concurrent_set_logic(Generators, hashset, Chunk, Coordinator) end)
     end), 
     solve_conc_helper3(Master, Generators, G, Remaining + Count - 1) 
   end.
+
+%concurrent set logic
+concurrent_set_logic(Generators, Set, Chunk, Sender) ->
+  Current = lists:flatmap(
+    fun(C) -> 
+      R = Generators(C), 
+      lists:filter(fun(X) -> ets:insert_new(Set, {X}) end, R)
+    end, Chunk
+  ),
+  Sender ! Current.
 
 %workers
 conc_worker(Coordinator, Generators) -> 
   receive 
     stop -> ok;
-    Chunk ->
-      NCurrent = lists:flatmap(fun(C) -> 
-          R = Generators(C), 
-          lists:filter(fun(X) -> ets:insert_new(hashset, {X}) end, R)
-        end, Chunk),
-      Coordinator ! NCurrent,
+    Chunk -> 
+      concurrent_set_logic(Generators, hashset, Chunk, Coordinator),
       conc_worker(Coordinator, Generators)
   end.
 

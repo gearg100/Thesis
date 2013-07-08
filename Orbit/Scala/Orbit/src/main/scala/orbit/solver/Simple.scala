@@ -69,5 +69,4 @@ class Simple(sets: orbit.util.SetProvider) {
       }
     timedRun { Await.result(helper(initData), Inf) }
   }
-
 }

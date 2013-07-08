@@ -40,7 +40,6 @@ module SimpleFunctions =
         let timer = Stopwatch.StartNew()
         helper initData, timer.ElapsedMilliseconds
 
-    type ParallelExecutionMode = System.Linq.ParallelExecutionMode
     let solveWithPLinq2<'T when 'T: equality> M { initData = initData; generators = generators } =
         let foundSoFar = ConcurrentSet.create M 1000000
         let rec helper current =
