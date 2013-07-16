@@ -17,7 +17,7 @@ object Main extends App {
     type D = Definition
     Map(
       (1, ("Sequential with Immutable Set", 					(x: D) => simple.solve(x))),
-      (2, ("Sequential with Mutable Set", 						(x: D) => simple.solve2(x))),
+      (2, ("Sequential with Mutable Set", 						(x: D) => simple.solveMutable(x))),
       (3, ("Parallel Collections", 								(x: D) => simple.solveParSeq(x, M))),
       (4, ("Parallel Collections with Concurrent Map", 			(x: D) => simple.solveParSeqWithConcurrentMap(x, M))),
       (5, ("Futures", 											(x: D) => simple.solveFuture(x, M, G))),

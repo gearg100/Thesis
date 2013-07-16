@@ -7,7 +7,7 @@ module SimpleFunctions =
     open Helpers
 
     let solve<'T when 'T: equality> { initData = initData; generators = generators } =
-        let foundSoFar = MutableSet(initData)
+        let foundSoFar = MutableSet.ofSeq initData
         let rec helper current =
             if Seq.isEmpty current then
                 foundSoFar :> seq<'T>
@@ -23,7 +23,7 @@ module SimpleFunctions =
 
     open System.Linq
     let solveWithPLinq<'T when 'T: equality> { initData = initData; generators = generators } =
-        let foundSoFar = MutableSet(initData)
+        let foundSoFar = MutableSet.ofSeq initData
         let rec helper current =
             if Seq.isEmpty (current:seq<'T>) then
                 foundSoFar :> seq<'T>

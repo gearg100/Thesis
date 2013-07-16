@@ -8,7 +8,7 @@ module NotSimpleFunctions =
     type Task = System.Threading.Tasks.Task
 
     let agentLogicMutableSet chunkAndSend G inbox = 
-        let foundSoFar = MutableSet<'T>()
+        let foundSoFar = MutableSet.empty
         let rec start() = 
             async {
                 let! Start(initData, replyChannel) = Agent.receive inbox

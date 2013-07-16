@@ -25,9 +25,19 @@ class Simple(sets: orbit.util.SetProvider) {
     timedRun { simpleLogic(problemDef)(initData, iSet ++ initData) }
   }
 
-  def solve2(problemDef: Definition): (Set[problemDef.T], Long) = {
+  def solveMutable(problemDef: Definition): (Set[problemDef.T], Long) = {
     import problemDef._
-    timedRun { simpleLogic(problemDef)(initData, mSet ++ initData) }
+    val results = mSet ++ initData
+    def helper(currentSeq: Seq[T]) {
+      val nFilteredSeq =
+        currentSeq
+          .flatMap(generators(_))
+          .filterNot(results.contains)
+          .distinct
+      results ++= nFilteredSeq
+      if (!nFilteredSeq.isEmpty) helper(nFilteredSeq)
+    }
+    timedRun { helper(initData); results }
   }
 
   def solveParSeq(problemDef: Definition, M: Int): (Set[problemDef.T], Long) = {
